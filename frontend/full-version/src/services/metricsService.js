@@ -2,7 +2,8 @@
 import axios from 'axios';
 
 // Separate base URL for metrics API so we don't interfere with app API
-const METRICS_BASE_URL = process.env.NEXT_PUBLIC_METRICS_API || process.env.NEXT_PUBLIC_API_HOST || '';
+// Use internal Next.js routes to avoid CORS and auth issues
+const METRICS_BASE_URL = '';
 
 const client = axios.create({
   baseURL: METRICS_BASE_URL,
@@ -11,7 +12,7 @@ const client = axios.create({
 
 export async function fetchMetrics(params = {}) {
   try {
-    const { data } = await client.get('/metrics', { params });
+    const { data } = await client.get('/api/metrics', { params });
     return data;
   } catch (error) {
     console.error('fetchMetrics error:', error?.response?.data || error?.message || error);
@@ -21,7 +22,7 @@ export async function fetchMetrics(params = {}) {
 
 export async function fetchBenchmarks(params = {}) {
   try {
-    const { data } = await client.get('/benchmarks', { params });
+    const { data } = await client.get('/api/benchmarks', { params });
     return data;
   } catch (error) {
     console.error('fetchBenchmarks error:', error?.response?.data || error?.message || error);
@@ -31,7 +32,7 @@ export async function fetchBenchmarks(params = {}) {
 
 export async function fetchExpenses(params = {}) {
   try {
-    const { data } = await client.get('/expenses', { params });
+    const { data } = await client.get('/api/expenses', { params });
     return data;
   } catch (error) {
     console.error('fetchExpenses error:', error?.response?.data || error?.message || error);

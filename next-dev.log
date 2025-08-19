@@ -130,3 +130,65 @@ Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
  GET /dashboard/analytics/metrics 200 in 6ms
  GET /metrics 404 in 470ms
+ ✓ Compiled in 734ms (5111 modules)
+ ✓ Compiled in 331ms (5111 modules)
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/analytics/performance. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/analytics/performance 200 in 109ms
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/analytics/use-behavior. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/analytics/use-behavior 200 in 16ms
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/analytics/overview. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/analytics/overview 200 in 20ms
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/analytics/overview. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/analytics/overview 200 in 559ms
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/analytics/benchmarks. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/analytics/benchmarks 200 in 21ms
+ GET /benchmarks 404 in 464ms
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/analytics/expenses. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/analytics/expenses 200 in 29ms
+ GET /expenses 404 in 474ms
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/analytics/benchmarks. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/analytics/benchmarks 200 in 29ms
+ GET /benchmarks 404 in 494ms
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/analytics/metrics. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/analytics/metrics 200 in 21ms
+ GET /metrics 404 in 466ms
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/analytics/performance. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/analytics/performance 200 in 14ms
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/analytics/use-behavior. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/analytics/use-behavior 200 in 7ms
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/analytics/overview. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/analytics/overview 200 in 9ms
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/analytics/use-behavior. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/analytics/use-behavior 200 in 20ms
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/analytics/performance. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/analytics/performance 200 in 5ms
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/analytics/metrics. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/analytics/metrics 200 in 7ms
+ GET /metrics 404 in 463ms
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/analytics/benchmarks. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/analytics/benchmarks 200 in 15ms
+ GET /benchmarks 404 in 459ms
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard/analytics/expenses. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET /dashboard/analytics/expenses 200 in 21ms
+ GET /expenses 404 in 469ms
+ ✓ Compiled in 709ms (5110 modules)
+ ✓ Compiled in 316ms (5110 modules)
+ ✓ Compiled in 323ms (5110 modules)
+ ✓ Compiled in 283ms (5110 modules)
+ ✓ Compiled in 1057ms (5110 modules)
