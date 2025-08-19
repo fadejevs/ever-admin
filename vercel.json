@@ -1,7 +1,7 @@
 {
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
   "framework": "nextjs",
-  "outputDirectory": ".next"
+  "installCommand": "cd frontend/full-version && npm ci",
+  "buildCommand": "cd frontend/full-version && npm run build",
+  "devCommand": "cd frontend/full-version && npm run dev",
+  "outputDirectory": "frontend/full-version/.next"
 }
