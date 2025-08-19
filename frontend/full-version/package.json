@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "name": "saas-able-react-mui-admin-next-js",
   "version": "1.0.0",
   "private": true,

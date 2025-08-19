@@ -192,3 +192,30 @@ Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
  ✓ Compiled in 323ms (5110 modules)
  ✓ Compiled in 283ms (5110 modules)
  ✓ Compiled in 1057ms (5110 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 1247ms (5121 modules)
+ GET / 200 in 1901ms
+ ✓ Compiled /_not-found in 149ms (2559 modules)
+ GET /_next/static/css/app/layout.css?v=1755598980517 404 in 3211ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 3213ms
+ GET /_next/static/chunks/main-app.js?v=1755598980517 404 in 3213ms
+ GET /_next/static/chunks/app/error.js 404 in 3212ms
+ GET /_next/static/chunks/app/layout.js 404 in 3212ms
+ GET /_next/static/chunks/app/not-found.js 404 in 3209ms
+ GET /_next/static/chunks/app/(admin)/loading.js 404 in 462ms
+ GET / 200 in 646ms
+ GET /_next/static/chunks/main-app.js?v=1755599017351 404 in 2717ms
+ GET /_next/static/css/app/layout.css?v=1755599017351 404 in 2719ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 1784ms
+ GET /_next/static/chunks/app/layout.js 404 in 1784ms
+ GET /_next/static/chunks/app/error.js 404 in 1784ms
+ GET /_next/static/chunks/app/not-found.js 404 in 1784ms
+ GET /_next/static/chunks/app/(admin)/loading.js 404 in 457ms
+ ⚠ Found a change in next.config.js. Restarting the server to apply the changes...
+ ⚠ Port 3000 is in use, trying 3001 instead.
+   ▲ Next.js 15.0.3
+   - Local:        http://localhost:3001
+   - Environments: .env.development
+
+ ✓ Starting...
+ ✓ Ready in 965ms
