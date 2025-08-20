@@ -1,6 +1,6 @@
 'use client';
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // @mui
 import { useTheme } from '@mui/material/styles';
@@ -18,7 +18,7 @@ import { getRadiusStyles } from '@/utils/getRadiusStyles';
 
 /***************************  TABS - DATA  ***************************/
 
-const sevenDaysData = [
+const sevenDaysDataFallback = [
   { title: 'Direct', value: '16,890', progress: { value: 45 } },
   { title: 'Google.com', value: '4,909', progress: { value: 56 } },
   { title: 'Remix.com', value: '550', progress: { value: 74 } },
@@ -27,7 +27,7 @@ const sevenDaysData = [
   { title: 'wewe.uv.us', value: '4,900', progress: { value: 95 } }
 ];
 
-const monthData = [
+const monthDataFallback = [
   { title: 'Direct', value: '67,560', progress: { value: 75 } },
   { title: 'Google.com', value: '19,636', progress: { value: 45 } },
   { title: 'Remix.com', value: '2,220', progress: { value: 10 } },
@@ -36,7 +36,7 @@ const monthData = [
   { title: 'wewe.uv.us', value: '19,600', progress: { value: 74 } }
 ];
 
-const yearData = [
+const yearDataFallback = [
   { title: 'Direct', value: '8,10,720', progress: { value: 52 } },
   { title: 'Google.com', value: '2,35,632', progress: { value: 45 } },
   { title: 'Remix.com', value: '26,640', progress: { value: 85 } },
@@ -45,7 +45,7 @@ const yearData = [
   { title: 'wewe.uv.us', value: '2,35,200', progress: { value: 45 } }
 ];
 
-const routesData = [
+const routesDataFallback = [
   { title: 'Home', value: '16,890', progress: { value: 15 } },
   { title: 'Pricing', value: '4,909', progress: { value: 78 } },
   { title: 'Change-log', value: '550', progress: { value: 25 } },
@@ -54,7 +54,7 @@ const routesData = [
   { title: 'Pricing', value: '4,900', progress: { value: 74 } }
 ];
 
-const pageData = [
+const pageDataFallback = [
   { title: 'Home', value: '67,560', progress: { value: 45 } },
   { title: 'Pricing', value: '19,636', progress: { value: 25 } },
   { title: 'Change-log', value: '2,220', progress: { value: 74 } },
@@ -63,7 +63,7 @@ const pageData = [
   { title: 'Pricing', value: '19,600', progress: { value: 95 } }
 ];
 
-const affiliateData = [
+const affiliateDataFallback = [
   { title: 'No-Refference', value: '16,890', progress: { value: 44 } },
   { title: 'Medium', value: '4,909', progress: { value: 90 } },
   { title: 'remaixblock.com', value: '550', progress: { value: 20 } },
@@ -72,7 +72,7 @@ const affiliateData = [
   { title: 'dev.io', value: '4,900', progress: { value: 78 } }
 ];
 
-const campaignData = [
+const campaignDataFallback = [
   { title: 'No-Refference', value: '67,560', progress: { value: 25 } },
   { title: 'Medium', value: '19,636', progress: { value: 74 } },
   { title: 'remaixblock.com', value: '2,220', progress: { value: 65 } },
@@ -81,7 +81,7 @@ const campaignData = [
   { title: 'dev.io', value: '19,600', progress: { value: 47 } }
 ];
 
-const marketingData = [
+const marketingDataFallback = [
   { title: 'No-Refference', value: '8,10,720', progress: { value: 41 } },
   { title: 'Medium', value: '2,35,632', progress: { value: 35 } },
   { title: 'remaixblock.com', value: '26,640', progress: { value: 55 } },
@@ -155,6 +155,35 @@ export default function TopReferrers() {
   const [httpReferrers, setHttpReferrers] = useState('days');
   const [pages, setPages] = useState('routes');
   const [sources, setSources] = useState('affiliate');
+  const [httpData, setHttpData] = useState({ days: [], month: [], year: [] });
+  const [routes, setRoutes] = useState({ routes: [], pages: [] });
+  const [sourcesData, setSourcesData] = useState({ affiliate: [], campaign: [], marketing: [] });
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/metrics');
+        const data = await res.json();
+        if (!mounted) return;
+        // Expect optional referrer-like fields; if absent, stay empty and hide panels
+        setHttpData({
+          days: data?.referrers7d || [],
+          month: data?.referrers30d || [],
+          year: data?.referrers365d || []
+        });
+        setRoutes({ routes: data?.topRoutes || [], pages: data?.topPages || [] });
+        setSourcesData({
+          affiliate: data?.topAffiliate || [],
+          campaign: data?.topCampaign || [],
+          marketing: data?.topMarketing || []
+        });
+      } catch (_e) {}
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Separate handleChange functions
   const handleHTTPReferrers = (event, newValue) => {
@@ -187,15 +216,19 @@ export default function TopReferrers() {
                 <Tab label="Last Month" {...a11yProps('month')} />
                 <Tab label="Last Year" {...a11yProps('year')} />
               </Tabs>
-              <TabPanel value={httpReferrers} index="days">
-                <TabContent data={sevenDaysData} />
-              </TabPanel>
-              <TabPanel value={httpReferrers} index="month">
-                <TabContent data={monthData} />
-              </TabPanel>
-              <TabPanel value={httpReferrers} index="year">
-                <TabContent data={yearData} />
-              </TabPanel>
+              {!!(httpData.days?.length || httpData.month?.length || httpData.year?.length) && (
+                <>
+                  <TabPanel value={httpReferrers} index="days">
+                    <TabContent data={httpData.days.length ? httpData.days : sevenDaysDataFallback} />
+                  </TabPanel>
+                  <TabPanel value={httpReferrers} index="month">
+                    <TabContent data={httpData.month.length ? httpData.month : monthDataFallback} />
+                  </TabPanel>
+                  <TabPanel value={httpReferrers} index="year">
+                    <TabContent data={httpData.year.length ? httpData.year : yearDataFallback} />
+                  </TabPanel>
+                </>
+              )}
             </Box>
           </Stack>
         </Grid>
@@ -207,12 +240,16 @@ export default function TopReferrers() {
                 <Tab label="Routes" {...a11yProps('routes')} />
                 <Tab label="Pages" {...a11yProps('pages')} />
               </Tabs>
-              <TabPanel value={pages} index="routes">
-                <TabContent data={routesData} />
-              </TabPanel>
-              <TabPanel value={pages} index="pages">
-                <TabContent data={pageData} />
-              </TabPanel>
+              {!!(routes.routes?.length || routes.pages?.length) && (
+                <>
+                  <TabPanel value={pages} index="routes">
+                    <TabContent data={routes.routes.length ? routes.routes : routesDataFallback} />
+                  </TabPanel>
+                  <TabPanel value={pages} index="pages">
+                    <TabContent data={routes.pages.length ? routes.pages : pageDataFallback} />
+                  </TabPanel>
+                </>
+              )}
             </Box>
           </Stack>
         </Grid>
@@ -225,15 +262,19 @@ export default function TopReferrers() {
                 <Tab label="Campaign " {...a11yProps('campaign')} />
                 <Tab label="Marketing" {...a11yProps('marketing')} />
               </Tabs>
-              <TabPanel value={sources} index="affiliate">
-                <TabContent data={affiliateData} />
-              </TabPanel>
-              <TabPanel value={sources} index="campaign">
-                <TabContent data={campaignData} />
-              </TabPanel>
-              <TabPanel value={sources} index="marketing">
-                <TabContent data={marketingData} />
-              </TabPanel>
+              {!!(sourcesData.affiliate?.length || sourcesData.campaign?.length || sourcesData.marketing?.length) && (
+                <>
+                  <TabPanel value={sources} index="affiliate">
+                    <TabContent data={sourcesData.affiliate.length ? sourcesData.affiliate : affiliateDataFallback} />
+                  </TabPanel>
+                  <TabPanel value={sources} index="campaign">
+                    <TabContent data={sourcesData.campaign.length ? sourcesData.campaign : campaignDataFallback} />
+                  </TabPanel>
+                  <TabPanel value={sources} index="marketing">
+                    <TabContent data={sourcesData.marketing.length ? sourcesData.marketing : marketingDataFallback} />
+                  </TabPanel>
+                </>
+              )}
             </Box>
           </Stack>
         </Grid>

@@ -11,7 +11,7 @@ export default function Dashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/dashboard/analytics/overview');
+    router.replace('/dashboard/analytics/metrics');
   }, [router]);
 
   return null;

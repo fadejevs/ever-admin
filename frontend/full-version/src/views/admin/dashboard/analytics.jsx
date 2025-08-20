@@ -14,17 +14,13 @@ import Box from '@mui/material/Box';
 
 // @project
 import { handlerActiveItem, useGetMenuMaster } from '@/states/menu';
-import { AnalyticsOverview, AnalyticsPerformance, AnalyticsUserBehavior } from '@/sections/dashboard/analytics';
-import dynamic from 'next/dynamic';
-
-// Lazy load new tabs (implement shortly)
-const MetricsTab = dynamic(() => import('@/views/metrics/MetricsTab'));
-const BenchmarksTab = dynamic(() => import('@/views/metrics/BenchmarksTab'));
-const ExpensesTab = dynamic(() => import('@/views/metrics/ExpensesTab'));
+import MetricsTab from '@/views/metrics/MetricsTab';
+import BenchmarksTab from '@/views/metrics/BenchmarksTab';
+import ExpensesTab from '@/views/metrics/ExpensesTab';
 
 /***************************  DASHBOARD - ANALYTICS  ***************************/
 
-export default function DashboardAnalytics({ tab = 'overview' }) {
+export default function DashboardAnalytics({ tab = 'metrics' }) {
   const router = useRouter();
   const pathname = usePathname();
   const { menuMaster } = useGetMenuMaster();
@@ -41,17 +37,11 @@ export default function DashboardAnalytics({ tab = 'overview' }) {
   return (
     <Stack sx={{ gap: 4 }}>
       <Tabs variant="scrollable" scrollButtons="auto" value={tab} onChange={handleChange} aria-label="analytics tabs">
-        <Tab label="Overview" value="overview" />
-        <Tab label="User Behavior" value="use-behavior" />
-        <Tab label="Performance" value="performance" />
         <Tab label="Metrics" value="metrics" />
         <Tab label="Benchmarks" value="benchmarks" />
         <Tab label="Expenses" value="expenses" />
       </Tabs>
       <Box>
-        {tab === 'overview' && <AnalyticsOverview />}
-        {tab === 'use-behavior' && <AnalyticsUserBehavior />}
-        {tab === 'performance' && <AnalyticsPerformance />}
         {tab === 'metrics' && <MetricsTab />}
         {tab === 'benchmarks' && <BenchmarksTab />}
         {tab === 'expenses' && <ExpensesTab />}

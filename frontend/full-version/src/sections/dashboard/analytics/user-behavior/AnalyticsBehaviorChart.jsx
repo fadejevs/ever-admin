@@ -1,7 +1,7 @@
 'use client';
 import PropTypes from 'prop-types';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // @mui
 import { useTheme } from '@mui/material/styles';
@@ -36,34 +36,48 @@ function TooltipWrapper({ counter, groupLabel = '', label = '' }) {
 export default function AnalyticsBehaviorChart() {
   const theme = useTheme();
 
-  const [barchart, setBarchart] = useState({
-    active_user: true,
-    inactive_user: true
-  });
+  const [barchart, setBarchart] = useState({ active_user: true, inactive_user: false });
+  const [labels, setLabels] = useState([]);
+  const [values, setValues] = useState([]);
 
   const toggleVisibility = (id) => {
     setBarchart((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Define the series data with the SeriesData interface
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/benchmarks');
+        const data = await res.json();
+        if (!mounted) return;
+        setLabels(Array.isArray(data?.endpoints) ? data.endpoints : []);
+        setValues(Array.isArray(data?.avgLatency) ? data.avgLatency : []);
+      } catch (_e) {
+        // fallback stays empty; chart will render no data
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const seriesData = [
     {
-      data: [700, 850, 600, 450, 400, 800, 300, 550, 700, 800, 900, 700],
-      label: 'Active User',
+      data: values,
+      label: 'Avg Latency (ms)',
       id: 'active_user',
       color: theme.palette.primary.main,
       visible: barchart['active_user']
     },
     {
-      data: [600, 750, 700, 500, 300, 600, 200, 450, 600, 700, 800, 650],
-      label: 'Inactive User',
+      data: [],
+      label: '—',
       id: 'inactive_user',
       color: theme.palette.primary.light,
       visible: barchart['inactive_user']
     }
   ];
-
-  const xAxisData = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   const lagendItems = seriesData.map((series) => ({ label: series.label, color: series.color, visible: series.visible, id: series.id }));
   const visibleSeries = seriesData.filter((s) => s.visible);
@@ -95,7 +109,7 @@ export default function AnalyticsBehaviorChart() {
       </Stack>
 
       <BarChart
-        xAxis={[{ scaleType: 'band', data: xAxisData, disableLine: true, disableTicks: true }]}
+        xAxis={[{ scaleType: 'band', data: labels, disableLine: true, disableTicks: true }]}
         grid={{ horizontal: true }}
         series={visibleSeries}
         yAxis={[{ disableLine: true, disableTicks: true, tickInterval: [0, 200, 400, 600, 800, 1000] }]}

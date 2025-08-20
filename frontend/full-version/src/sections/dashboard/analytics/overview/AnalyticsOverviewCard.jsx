@@ -2,6 +2,7 @@
 
 // @mui
 import { useTheme } from '@mui/material/styles';
+import { useEffect, useState } from 'react';
 import Grid from '@mui/material/Grid2';
 
 // @project
@@ -41,7 +42,7 @@ export function applyBorderWithRadius(radius, theme) {
 
 /***************************   OVERVIEW CARD -DATA  ***************************/
 
-const overviewAnalytics = [
+const fallbackOverview = [
   {
     title: 'Unique Visitors',
     value: '23,876',
@@ -85,10 +86,35 @@ const overviewAnalytics = [
 
 export default function AnalyticsOverviewCard() {
   const theme = useTheme();
+  const [cards, setCards] = useState(fallbackOverview);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/health-summary');
+        const data = await res.json();
+        if (!mounted || !data || data.error) return;
+        const uptimePct = data?.uptimePct != null ? `${data.uptimePct.toFixed(2)}%` : '—';
+        const incidents = data?.incidents != null ? String(data.incidents) : '—';
+        const avgLatency = data?.avgLatencyMs != null ? `${data.avgLatencyMs} ms` : '—';
+        const errorRate = data?.errorRatePct != null ? `${data.errorRatePct}%` : '—';
+        setCards([
+          { title: 'Uptime', value: uptimePct, compare: 'Last 24h', chip: { label: '' } },
+          { title: 'Incidents', value: incidents, compare: 'Last 24h', chip: { label: '' } },
+          { title: 'Avg Latency', value: avgLatency, compare: 'Last 1h', chip: { label: '' } },
+          { title: 'Error Rate', value: errorRate, compare: 'Last 1h', chip: { label: '' } }
+        ]);
+      } catch (_e) {}
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <Grid container sx={{ borderRadius: 4, boxShadow: theme.customShadows.section, ...applyBorderWithRadius(16, theme) }}>
-      {overviewAnalytics.map((item, index) => (
+      {cards.map((item, index) => (
         <Grid key={index} size={{ xs: 6, sm: 6, md: 3 }}>
           <OverviewCard {...{ ...item, cardProps: { sx: { border: 'none', borderRadius: 0, boxShadow: 'none' } } }} />
         </Grid>

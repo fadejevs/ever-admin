@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 // @mui
 import { useTheme } from '@mui/material/styles';
@@ -183,6 +183,37 @@ export default function Chart1() {
     page_views: true,
     unique_visitor: true
   });
+  const [ts, setTs] = useState([]);
+  const [p95, setP95] = useState([]);
+  const [tps, setTps] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/metrics');
+        const data = await res.json();
+        if (!mounted) return;
+        const timestamps = (data?.timestamps || []).map((t) => new Date(t));
+        const p95Data = Array.isArray(data?.p95) ? data.p95 : [];
+        const tpsData = Array.isArray(data?.throughput) ? data.throughput : [];
+        setTs(timestamps);
+        if (p95Data.length) {
+          const flat = Array(p95Data.length).fill(p95Data[0]);
+          setP95(flat);
+          requestAnimationFrame(() => setP95(p95Data));
+        }
+        if (tpsData.length) {
+          const flatT = Array(tpsData.length).fill(tpsData[0]);
+          setTps(flatT);
+          requestAnimationFrame(() => setTps(tpsData));
+        }
+      } catch (_e) {}
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleViewChange = (_event, newValue) => {
     setView(newValue);
@@ -195,24 +226,24 @@ export default function Chart1() {
   const seriesData = [
     {
       id: 'page_views',
-      data: dataMap[view].pageViewData,
+      data: p95.length ? p95 : dataMap[view].pageViewData,
       color: theme.palette.primary.light,
       visible: visibilityOption['page_views'],
-      label: 'Page View'
+      label: p95.length ? 'P95 Latency (ms)' : 'Page View'
     },
     {
       id: 'unique_visitor',
-      data: dataMap[view].uniqueVisitorData,
+      data: tps.length ? tps : dataMap[view].uniqueVisitorData,
       color: theme.palette.primary.main,
       visible: visibilityOption['unique_visitor'],
-      label: 'Unique Visitor'
+      label: tps.length ? 'Throughput (req/s)' : 'Unique Visitor'
     }
   ];
 
   const visibleSeries = seriesData.filter((s) => s.visible);
   const lagendItems = seriesData.map((series) => ({ label: series.label, color: series.color, visible: series.visible, id: series.id }));
 
-  const xData = view === ViewMode.MONTHLY ? monthlyPoints : view === ViewMode.DAILY ? dailyPoints : yearlyPoints;
+  const xData = useMemo(() => (p95.length || tps.length ? ts : view === ViewMode.MONTHLY ? monthlyPoints : view === ViewMode.DAILY ? dailyPoints : yearlyPoints), [p95.length, tps.length, ts, view]);
 
   // Dynamic styles for visible series
   const dynamicSeriesStyles = visibleSeries.reduce((acc, series) => {
