@@ -11,8 +11,14 @@ export default function Dashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/dashboard/analytics/metrics');
+    // Stay at /dashboard/ instead of redirecting
+    // router.replace('/dashboard/analytics/metrics');
   }, [router]);
 
-  return null;
+  return (
+    <div style={{ padding: '24px' }}>
+      <h1>Dashboard</h1>
+      <p>Welcome to the admin dashboard. Use the navigation to access different sections.</p>
+    </div>
+  );
 }
