@@ -12,9 +12,7 @@ export async function GET(request) {
     }
     const data = await res.json();
     return Response.json(data, { status: res.status });
-  } catch (e) {
+  } catch {
     return Response.json({ error: 'Failed to fetch health summary' }, { status: 502 });
   }
 }
-
-

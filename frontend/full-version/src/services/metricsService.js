@@ -48,5 +48,3 @@ export function toLineSeries(points = [], { id = 'series', label = 'Series', col
 export function toBarSeries(values = [], { id = 'series', label = 'Series', color } = {}) {
   return [{ id, label, data: values, color }];
 }
-
-
