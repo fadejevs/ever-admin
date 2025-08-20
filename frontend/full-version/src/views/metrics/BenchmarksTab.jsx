@@ -103,7 +103,7 @@ const BenchmarksTab = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400, p: 3 }}>
         <Typography>Loading benchmarks...</Typography>
       </Box>
     );
@@ -111,7 +111,7 @@ const BenchmarksTab = () => {
 
   if (error) {
     return (
-      <Box sx={{ p: 2 }}>
+      <Box sx={{ p: 3 }}>
         <Typography color="error" variant="h6">Error loading benchmarks</Typography>
         <Typography variant="body2" color="error">{error}</Typography>
       </Box>
@@ -119,7 +119,7 @@ const BenchmarksTab = () => {
   }
 
   return (
-    <Box>
+    <Box sx={{ p: 3 }}>
       <Grid container spacing={2} sx={{ mb: 2 }}>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard title="Best WER" value={`${(bestWER * 100).toFixed(2)}%`} hint="Lowest error rate" />

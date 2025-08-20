@@ -141,7 +141,7 @@ const MetricsTab = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400, p: 3 }}>
         <Typography>Loading metrics...</Typography>
       </Box>
     );
@@ -149,15 +149,17 @@ const MetricsTab = () => {
 
   if (error) {
     return (
-      <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-        <Typography sx={{ fontWeight: 600 }}>Error loading metrics</Typography>
-        <Typography variant="body2">{error}</Typography>
-      </Alert>
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
+          <Typography sx={{ fontWeight: 600 }}>Error loading metrics</Typography>
+          <Typography variant="body2">{error}</Typography>
+        </Alert>
+      </Box>
     );
   }
 
   return (
-    <Box>
+    <Box sx={{ p: 3 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 700 }}>Operations Dashboard</Typography>

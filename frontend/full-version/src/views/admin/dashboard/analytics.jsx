@@ -35,18 +35,20 @@ export default function DashboardAnalytics({ tab = 'metrics' }) {
   }, [pathname]);
 
   return (
-    <Stack sx={{ gap: 4 }}>
-      <Tabs variant="scrollable" scrollButtons="auto" value={tab} onChange={handleChange} aria-label="analytics tabs">
-        <Tab label="Metrics" value="metrics" />
-        <Tab label="Benchmarks" value="benchmarks" />
-        <Tab label="Expenses" value="expenses" />
-      </Tabs>
-      <Box>
-        {tab === 'metrics' && <MetricsTab />}
-        {tab === 'benchmarks' && <BenchmarksTab />}
-        {tab === 'expenses' && <ExpensesTab />}
-      </Box>
-    </Stack>
+    <Box sx={{ p: 3 }}>
+      <Stack sx={{ gap: 4 }}>
+        <Tabs variant="scrollable" scrollButtons="auto" value={tab} onChange={handleChange} aria-label="analytics tabs">
+          <Tab label="Metrics" value="metrics" />
+          <Tab label="Benchmarks" value="benchmarks" />
+          <Tab label="Expenses" value="expenses" />
+        </Tabs>
+        <Box>
+          {tab === 'metrics' && <MetricsTab />}
+          {tab === 'benchmarks' && <BenchmarksTab />}
+          {tab === 'expenses' && <ExpensesTab />}
+        </Box>
+      </Stack>
+    </Box>
   );
 }
 

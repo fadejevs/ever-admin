@@ -40,6 +40,16 @@ export async function fetchExpenses(params = {}) {
   }
 }
 
+export async function fetchUserPayments(params = {}) {
+  try {
+    const { data } = await client.get('/api/user-payments', { params });
+    return data;
+  } catch (error) {
+    console.error('fetchUserPayments error:', error?.response?.data || error?.message || error);
+    throw error;
+  }
+}
+
 // Helpers to normalize common shapes into chart-ready series
 export function toLineSeries(points = [], { id = 'series', label = 'Series', color } = {}) {
   return [{ id, label, data: points, color }];
