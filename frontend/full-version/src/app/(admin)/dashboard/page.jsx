@@ -5,20 +5,23 @@ import { useRouter } from 'next/navigation';
 
 import { useEffect } from 'react';
 
+// @project
+import { handlerActiveItem, useGetMenuMaster } from '@/states/menu';
+import MetricsTab from '@/views/metrics/MetricsTab';
+
 /***************************  DASHBOARD  ***************************/
 
 export default function Dashboard() {
   const router = useRouter();
+  const { menuMaster } = useGetMenuMaster();
 
   useEffect(() => {
-    // Stay at /dashboard/ instead of redirecting
-    // router.replace('/dashboard/analytics/metrics');
-  }, [router]);
+    if (!menuMaster || menuMaster.openedItem !== 'dashboard') handlerActiveItem('dashboard');
+  }, [menuMaster]);
 
   return (
     <div style={{ padding: '24px' }}>
-      <h1>Dashboard</h1>
-      <p>Welcome to the admin dashboard. Use the navigation to access different sections.</p>
+      <MetricsTab />
     </div>
   );
 }
