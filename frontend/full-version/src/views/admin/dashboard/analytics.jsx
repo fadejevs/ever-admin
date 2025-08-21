@@ -16,7 +16,7 @@ import Box from '@mui/material/Box';
 import { handlerActiveItem, useGetMenuMaster } from '@/states/menu';
 import MetricsTab from '@/views/metrics/MetricsTab';
 import BenchmarksTab from '@/views/metrics/BenchmarksTab';
-import ExpensesTab from '@/views/metrics/ExpensesTab';
+import FinancesTab from '@/views/metrics/FinancesTab';
 
 /***************************  DASHBOARD - ANALYTICS  ***************************/
 
@@ -40,12 +40,12 @@ export default function DashboardAnalytics({ tab = 'metrics' }) {
         <Tabs variant="scrollable" scrollButtons="auto" value={tab} onChange={handleChange} aria-label="analytics tabs">
           <Tab label="Metrics" value="metrics" />
           <Tab label="Benchmarks" value="benchmarks" />
-          <Tab label="Expenses" value="expenses" />
+          <Tab label="Finances" value="finances" />
         </Tabs>
         <Box>
           {tab === 'metrics' && <MetricsTab />}
           {tab === 'benchmarks' && <BenchmarksTab />}
-          {tab === 'expenses' && <ExpensesTab />}
+          {tab === 'finances' && <FinancesTab />}
         </Box>
       </Stack>
     </Box>
