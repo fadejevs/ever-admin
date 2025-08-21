@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Box, Grid, Paper, Typography, Table, TableHead, TableRow, TableCell, TableBody, Select, MenuItem, FormControl, InputLabel, Stack, Chip, Divider, Alert } from '@mui/material';
+import { Box, Grid, Paper, Typography, Table, TableHead, TableRow, TableCell, TableBody, Select, MenuItem, FormControl, InputLabel, Stack, Chip, Divider, Alert, useTheme, useMediaQuery } from '@mui/material';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
@@ -9,15 +9,34 @@ import PeopleIcon from '@mui/icons-material/People';
 // import { fetchExpenses, fetchUserPayments } from '@/services/metricsService';
 
 const StatCard = ({ title, value, hint, trend, color = 'primary', icon }) => (
-  <Paper sx={{ p: 2, borderRadius: 2 }}>
+  <Paper sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 2 }}>
     <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-      <Box>
-        <Typography variant="overline" sx={{ color: '#637381' }}>{title}</Typography>
-        <Typography variant="h5" sx={{ color: '#212B36', fontWeight: 600 }}>{value}</Typography>
-        {hint ? (<Typography variant="caption" sx={{ color: '#919EAB' }}>{hint}</Typography>) : null}
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography variant="overline" sx={{ color: '#637381', fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>{title}</Typography>
+        <Typography variant="h5" sx={{ 
+          color: '#212B36', 
+          fontWeight: 600, 
+          fontSize: { xs: '1.25rem', sm: '1.5rem' },
+          wordBreak: 'break-word'
+        }}>
+          {value}
+        </Typography>
+        {hint ? (
+          <Typography variant="caption" sx={{ 
+            color: '#919EAB', 
+            fontSize: { xs: '0.7rem', sm: '0.75rem' },
+            wordBreak: 'break-word'
+          }}>
+            {hint}
+          </Typography>
+        ) : null}
       </Box>
       {icon && (
-        <Box sx={{ color: color === 'success' ? '#4CAF50' : color === 'error' ? '#F44336' : '#2196F3' }}>
+        <Box sx={{ 
+          color: color === 'success' ? '#4CAF50' : color === 'error' ? '#F44336' : '#2196F3',
+          ml: 1,
+          flexShrink: 0
+        }}>
           {icon}
         </Box>
       )}
@@ -25,11 +44,14 @@ const StatCard = ({ title, value, hint, trend, color = 'primary', icon }) => (
     {trend && (
       <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 1 }}>
         {trend > 0 ? (
-          <TrendingUpIcon sx={{ fontSize: 16, color: '#4CAF50' }} />
+          <TrendingUpIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: '#4CAF50' }} />
         ) : (
-          <TrendingDownIcon sx={{ fontSize: 16, color: '#F44336' }} />
+          <TrendingDownIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: '#F44336' }} />
         )}
-        <Typography variant="caption" sx={{ color: trend > 0 ? '#4CAF50' : '#F44336' }}>
+        <Typography variant="caption" sx={{ 
+          color: trend > 0 ? '#4CAF50' : '#F44336',
+          fontSize: { xs: '0.7rem', sm: '0.75rem' }
+        }}>
           {Math.abs(trend)}% from last month
         </Typography>
       </Stack>
@@ -39,31 +61,50 @@ const StatCard = ({ title, value, hint, trend, color = 'primary', icon }) => (
 
 const MetricRow = ({ metric, value, target, status, trend }) => (
   <TableRow>
-    <TableCell>
-      <Typography sx={{ fontWeight: 600 }}>{metric}</Typography>
+    <TableCell sx={{ 
+      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+      padding: { xs: 1, sm: 1.5 }
+    }}>
+      <Typography sx={{ fontWeight: 600, wordBreak: 'break-word' }}>{metric}</Typography>
     </TableCell>
-    <TableCell align="right">
+    <TableCell align="right" sx={{ 
+      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+      padding: { xs: 1, sm: 1.5 }
+    }}>
       <Typography variant="body2" sx={{ fontWeight: 600 }}>{value}</Typography>
     </TableCell>
-    <TableCell align="right">
+    <TableCell align="right" sx={{ 
+      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+      padding: { xs: 1, sm: 1.5 }
+    }}>
       <Typography variant="body2" sx={{ color: '#637381' }}>{target}</Typography>
     </TableCell>
-    <TableCell>
+    <TableCell sx={{ 
+      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+      padding: { xs: 1, sm: 1.5 }
+    }}>
       <Chip
         size="small"
         label={status}
         color={status === 'Good' ? 'success' : status === 'Warning' ? 'warning' : 'error'}
         variant="outlined"
+        sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
       />
     </TableCell>
-    <TableCell align="right">
+    <TableCell align="right" sx={{ 
+      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+      padding: { xs: 1, sm: 1.5 }
+    }}>
       <Stack direction="row" alignItems="center" spacing={0.5} justifyContent="flex-end">
         {trend > 0 ? (
-          <TrendingUpIcon sx={{ fontSize: 14, color: '#4CAF50' }} />
+          <TrendingUpIcon sx={{ fontSize: { xs: 12, sm: 14 }, color: '#4CAF50' }} />
         ) : (
-          <TrendingDownIcon sx={{ fontSize: 14, color: '#F44336' }} />
+          <TrendingDownIcon sx={{ fontSize: { xs: 12, sm: 14 }, color: '#F44336' }} />
         )}
-        <Typography variant="caption" sx={{ color: trend > 0 ? '#4CAF50' : '#F44336' }}>
+        <Typography variant="caption" sx={{ 
+          color: trend > 0 ? '#4CAF50' : '#F44336',
+          fontSize: { xs: '0.65rem', sm: '0.75rem' }
+        }}>
           {Math.abs(trend)}%
         </Typography>
       </Stack>
@@ -74,6 +115,9 @@ const MetricRow = ({ metric, value, target, status, trend }) => (
 const FinancesTab = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
   const [loading, setLoading] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
   // Use local mock data for now (until main codebase is deployed with finances API)
   const mockExpensesData = {
@@ -175,17 +219,17 @@ const FinancesTab = () => {
   const paybackPeriod = financialData.cac.current / (financialData.ltv.current / 12);
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 1.5, sm: 2, md: 3 } }}>
       {/* Data Source Indicator */}
-      <Alert severity="info" sx={{ mb: 3 }}>
-        <Typography variant="body2">
+      <Alert severity="info" sx={{ mb: { xs: 2, sm: 3 } }}>
+        <Typography variant="body2" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
           <strong>Beta Dashboard:</strong> Using sample data for 14 free users. 
           Deploy the finances API to your main codebase to see real data.
         </Typography>
       </Alert>
 
       {/* Key Financial Metrics */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
+      <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: { xs: 2, sm: 3 } }}>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard 
             title="CAC" 
@@ -229,49 +273,103 @@ const FinancesTab = () => {
       </Grid>
 
       {/* Revenue Overview */}
-      <Paper sx={{ p: 2, borderRadius: 2, mb: 3 }}>
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Revenue Overview</Typography>
-        <Grid container spacing={2}>
+      <Paper sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 2, mb: { xs: 2, sm: 3 } }}>
+        <Typography variant="h6" sx={{ 
+          mb: { xs: 1.5, sm: 2 }, 
+          fontWeight: 600,
+          fontSize: { xs: '1.1rem', sm: '1.25rem' }
+        }}>
+          Revenue Overview
+        </Typography>
+        <Grid container spacing={{ xs: 1.5, sm: 2 }}>
           <Grid item xs={12} sm={6} md={3}>
             <Box>
-              <Typography variant="overline" sx={{ color: '#637381' }}>MRR</Typography>
-              <Typography variant="h5" sx={{ color: '#212B36', fontWeight: 600 }}>
+              <Typography variant="overline" sx={{ 
+                color: '#637381',
+                fontSize: { xs: '0.7rem', sm: '0.75rem' }
+              }}>
+                MRR
+              </Typography>
+              <Typography variant="h5" sx={{ 
+                color: '#212B36', 
+                fontWeight: 600,
+                fontSize: { xs: '1.25rem', sm: '1.5rem' }
+              }}>
                 ${financialData.revenue.mrr.toLocaleString()}
               </Typography>
-              <Typography variant="caption" sx={{ color: '#919EAB' }}>
+              <Typography variant="caption" sx={{ 
+                color: '#919EAB',
+                fontSize: { xs: '0.7rem', sm: '0.75rem' }
+              }}>
                 Monthly Recurring Revenue
               </Typography>
             </Box>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Box>
-              <Typography variant="overline" sx={{ color: '#637381' }}>ARR</Typography>
-              <Typography variant="h5" sx={{ color: '#212B36', fontWeight: 600 }}>
+              <Typography variant="overline" sx={{ 
+                color: '#637381',
+                fontSize: { xs: '0.7rem', sm: '0.75rem' }
+              }}>
+                ARR
+              </Typography>
+              <Typography variant="h5" sx={{ 
+                color: '#212B36', 
+                fontWeight: 600,
+                fontSize: { xs: '1.25rem', sm: '1.5rem' }
+              }}>
                 ${financialData.revenue.arr.toLocaleString()}
               </Typography>
-              <Typography variant="caption" sx={{ color: '#919EAB' }}>
+              <Typography variant="caption" sx={{ 
+                color: '#919EAB',
+                fontSize: { xs: '0.7rem', sm: '0.75rem' }
+              }}>
                 Annual Recurring Revenue
               </Typography>
             </Box>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Box>
-              <Typography variant="overline" sx={{ color: '#637381' }}>Growth</Typography>
-              <Typography variant="h5" sx={{ color: '#4CAF50', fontWeight: 600 }}>
+              <Typography variant="overline" sx={{ 
+                color: '#637381',
+                fontSize: { xs: '0.7rem', sm: '0.75rem' }
+              }}>
+                Growth
+              </Typography>
+              <Typography variant="h5" sx={{ 
+                color: '#4CAF50', 
+                fontWeight: 600,
+                fontSize: { xs: '1.25rem', sm: '1.5rem' }
+              }}>
                 +{financialData.revenue.growth}%
               </Typography>
-              <Typography variant="caption" sx={{ color: '#919EAB' }}>
+              <Typography variant="caption" sx={{ 
+                color: '#919EAB',
+                fontSize: { xs: '0.7rem', sm: '0.75rem' }
+              }}>
                 Month over Month
               </Typography>
             </Box>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Box>
-              <Typography variant="overline" sx={{ color: '#637381' }}>Avg Price</Typography>
-              <Typography variant="h5" sx={{ color: '#212B36', fontWeight: 600 }}>
+              <Typography variant="overline" sx={{ 
+                color: '#637381',
+                fontSize: { xs: '0.7rem', sm: '0.75rem' }
+              }}>
+                Avg Price
+              </Typography>
+              <Typography variant="h5" sx={{ 
+                color: '#212B36', 
+                fontWeight: 600,
+                fontSize: { xs: '1.25rem', sm: '1.5rem' }
+              }}>
                 ${financialData.pricing.averagePrice.toFixed(2)}
               </Typography>
-              <Typography variant="caption" sx={{ color: '#919EAB' }}>
+              <Typography variant="caption" sx={{ 
+                color: '#919EAB',
+                fontSize: { xs: '0.7rem', sm: '0.75rem' }
+              }}>
                 Per Customer
               </Typography>
             </Box>
@@ -280,10 +378,25 @@ const FinancesTab = () => {
       </Paper>
 
       {/* Pricing Strategy */}
-      <Paper sx={{ p: 2, borderRadius: 2, mb: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>Pricing Strategy & Conversion</Typography>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
+      <Paper sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 2, mb: { xs: 2, sm: 3 } }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between', 
+          alignItems: { xs: 'flex-start', sm: 'center' }, 
+          mb: { xs: 1.5, sm: 2 },
+          gap: { xs: 1, sm: 0 }
+        }}>
+          <Typography variant="h6" sx={{ 
+            fontWeight: 600,
+            fontSize: { xs: '1.1rem', sm: '1.25rem' }
+          }}>
+            Pricing Strategy & Conversion
+          </Typography>
+          <FormControl size="small" sx={{ 
+            minWidth: { xs: '100%', sm: 120 },
+            width: { xs: '100%', sm: 'auto' }
+          }}>
             <InputLabel>Period</InputLabel>
             <Select
               value={selectedPeriod}
@@ -296,89 +409,181 @@ const FinancesTab = () => {
             </Select>
           </FormControl>
         </Box>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Plan</TableCell>
-              <TableCell align="right">Users</TableCell>
-              <TableCell align="right">Conversion Rate</TableCell>
-              <TableCell align="right">Revenue</TableCell>
-              <TableCell align="right">Avg LTV</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {financialData.pricing.plans.map((plan, i) => (
-              <TableRow key={i}>
-                <TableCell>
-                  <Stack direction="row" alignItems="center" spacing={1}>
-                    <Typography sx={{ fontWeight: 600 }}>{plan.name}</Typography>
-                    {plan.name === 'Enterprise' && (
-                      <Chip label="Premium" size="small" color="error" variant="outlined" />
-                    )}
-                  </Stack>
+        <Box sx={{ overflowX: 'auto' }}>
+          <Table size="small" sx={{ minWidth: { xs: 400, sm: 600 } }}>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ 
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  padding: { xs: 1, sm: 1.5 }
+                }}>
+                  Plan
                 </TableCell>
-                <TableCell align="right">{plan.users.toLocaleString()}</TableCell>
-                <TableCell align="right">
-                  <Typography variant="body2" sx={{ color: plan.conversion >= 10 ? '#4CAF50' : '#FF9800' }}>
-                    {plan.conversion}%
-                  </Typography>
+                <TableCell align="right" sx={{ 
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  padding: { xs: 1, sm: 1.5 }
+                }}>
+                  Users
                 </TableCell>
-                <TableCell align="right">${plan.revenue.toLocaleString()}</TableCell>
-                <TableCell align="right">
-                  ${plan.name === 'Free' ? '0' : (plan.revenue / plan.users).toFixed(2)}
+                <TableCell align="right" sx={{ 
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  padding: { xs: 1, sm: 1.5 }
+                }}>
+                  Conversion Rate
+                </TableCell>
+                <TableCell align="right" sx={{ 
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  padding: { xs: 1, sm: 1.5 }
+                }}>
+                  Revenue
+                </TableCell>
+                <TableCell align="right" sx={{ 
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  padding: { xs: 1, sm: 1.5 }
+                }}>
+                  Avg LTV
                 </TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHead>
+            <TableBody>
+              {financialData.pricing.plans.map((plan, i) => (
+                <TableRow key={i}>
+                  <TableCell sx={{ 
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    padding: { xs: 1, sm: 1.5 }
+                  }}>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <Typography sx={{ 
+                        fontWeight: 600,
+                        fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                      }}>
+                        {plan.name}
+                      </Typography>
+                      {plan.name === 'Enterprise' && (
+                        <Chip 
+                          label="Premium" 
+                          size="small" 
+                          color="error" 
+                          variant="outlined"
+                          sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
+                        />
+                      )}
+                    </Stack>
+                  </TableCell>
+                  <TableCell align="right" sx={{ 
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    padding: { xs: 1, sm: 1.5 }
+                  }}>
+                    {plan.users.toLocaleString()}
+                  </TableCell>
+                  <TableCell align="right" sx={{ 
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    padding: { xs: 1, sm: 1.5 }
+                  }}>
+                    <Typography variant="body2" sx={{ 
+                      color: plan.conversion >= 10 ? '#4CAF50' : '#FF9800',
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                    }}>
+                      {plan.conversion}%
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="right" sx={{ 
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    padding: { xs: 1, sm: 1.5 }
+                  }}>
+                    ${plan.revenue.toLocaleString()}
+                  </TableCell>
+                  <TableCell align="right" sx={{ 
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    padding: { xs: 1, sm: 1.5 }
+                  }}>
+                    ${plan.name === 'Free' ? '0' : (plan.revenue / plan.users).toFixed(2)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Box>
       </Paper>
 
       {/* Financial Health Metrics */}
-      <Paper sx={{ p: 2, borderRadius: 2, mb: 3 }}>
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Financial Health Metrics</Typography>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Metric</TableCell>
-              <TableCell align="right">Current</TableCell>
-              <TableCell align="right">Target</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell align="right">Trend</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            <MetricRow 
-              metric="CAC Payback Period"
-              value={`${paybackPeriod.toFixed(1)} months`}
-              target="< 12 months"
-              status={paybackPeriod <= 12 ? 'Good' : paybackPeriod <= 18 ? 'Warning' : 'Critical'}
-              trend={-financialData.cac.trend}
-            />
-            <MetricRow 
-              metric="LTV:CAC Ratio"
-              value={ltvCacRatio.toFixed(2)}
-              target="> 3.0"
-              status={ltvCacRatio >= 3 ? 'Good' : ltvCacRatio >= 2 ? 'Warning' : 'Critical'}
-              trend={financialData.ltv.trend - financialData.cac.trend}
-            />
-            <MetricRow 
-              metric="Churn Rate"
-              value={`${financialData.churn.current}%`}
-              target="< 3%"
-              status={financialData.churn.current <= 3 ? 'Good' : financialData.churn.current <= 5 ? 'Warning' : 'Critical'}
-              trend={financialData.churn.trend}
-            />
-            <MetricRow 
-              metric="Revenue Growth"
-              value={`${financialData.revenue.growth}%`}
-              target="> 20%"
-              status={financialData.revenue.growth >= 20 ? 'Good' : financialData.revenue.growth >= 10 ? 'Warning' : 'Critical'}
-              trend={financialData.revenue.growth}
-            />
-          </TableBody>
-        </Table>
+      <Paper sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 2, mb: { xs: 2, sm: 3 } }}>
+        <Typography variant="h6" sx={{ 
+          mb: { xs: 1.5, sm: 2 }, 
+          fontWeight: 600,
+          fontSize: { xs: '1.1rem', sm: '1.25rem' }
+        }}>
+          Financial Health Metrics
+        </Typography>
+        <Box sx={{ overflowX: 'auto' }}>
+          <Table size="small" sx={{ minWidth: { xs: 400, sm: 600 } }}>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ 
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  padding: { xs: 1, sm: 1.5 }
+                }}>
+                  Metric
+                </TableCell>
+                <TableCell align="right" sx={{ 
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  padding: { xs: 1, sm: 1.5 }
+                }}>
+                  Current
+                </TableCell>
+                <TableCell align="right" sx={{ 
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  padding: { xs: 1, sm: 1.5 }
+                }}>
+                  Target
+                </TableCell>
+                <TableCell sx={{ 
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  padding: { xs: 1, sm: 1.5 }
+                }}>
+                  Status
+                </TableCell>
+                <TableCell align="right" sx={{ 
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  padding: { xs: 1, sm: 1.5 }
+                }}>
+                  Trend
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <MetricRow 
+                metric="CAC Payback Period"
+                value={`${paybackPeriod.toFixed(1)} months`}
+                target="< 12 months"
+                status={paybackPeriod <= 12 ? 'Good' : paybackPeriod <= 18 ? 'Warning' : 'Critical'}
+                trend={-financialData.cac.trend}
+              />
+              <MetricRow 
+                metric="LTV:CAC Ratio"
+                value={ltvCacRatio.toFixed(2)}
+                target="> 3.0"
+                status={ltvCacRatio >= 3 ? 'Good' : ltvCacRatio >= 2 ? 'Warning' : 'Critical'}
+                trend={financialData.ltv.trend - financialData.cac.trend}
+              />
+              <MetricRow 
+                metric="Churn Rate"
+                value={`${financialData.churn.current}%`}
+                target="< 3%"
+                status={financialData.churn.current <= 3 ? 'Good' : financialData.churn.current <= 5 ? 'Warning' : 'Critical'}
+                trend={financialData.churn.trend}
+              />
+              <MetricRow 
+                metric="Revenue Growth"
+                value={`${financialData.revenue.growth}%`}
+                target="> 20%"
+                status={financialData.revenue.growth >= 20 ? 'Good' : financialData.revenue.growth >= 10 ? 'Warning' : 'Critical'}
+                trend={financialData.revenue.growth}
+              />
+            </TableBody>
+          </Table>
+        </Box>
       </Paper>
-
     </Box>
   );
 };
