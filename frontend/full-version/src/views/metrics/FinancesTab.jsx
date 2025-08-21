@@ -221,12 +221,12 @@ const FinancesTab = () => {
   return (
     <Box sx={{ p: { xs: 1.5, sm: 2, md: 3 } }}>
       {/* Data Source Indicator */}
-      <Alert severity="info" sx={{ mb: { xs: 2, sm: 3 } }}>
+      {/* <Alert severity="info" sx={{ mb: { xs: 2, sm: 3 } }}>
         <Typography variant="body2" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
           <strong>Beta Dashboard:</strong> Using sample data for 14 free users. 
           Deploy the finances API to your main codebase to see real data.
         </Typography>
-      </Alert>
+      </Alert> */}
 
       {/* Key Financial Metrics */}
       <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: { xs: 2, sm: 3 } }}>
