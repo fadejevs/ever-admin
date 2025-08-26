@@ -93,7 +93,7 @@ export default function ClientCallback() {
             }, 500);
           } else {
             console.error('Client callback: PKCE error:', error);
-            
+
             // Check for specific error types
             let errorType = 'pkce_callback_failed';
             if (error?.message?.includes('expired') || error?.message?.includes('invalid')) {
@@ -101,7 +101,7 @@ export default function ClientCallback() {
             } else if (error?.message?.includes('already been used')) {
               errorType = 'auth_already_used';
             }
-            
+
             setStatus('Authentication failed. Redirecting to login...');
 
             setTimeout(() => {

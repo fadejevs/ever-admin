@@ -14,7 +14,7 @@ export default function HandleTokens() {
         // Get tokens from URL hash
         const urlHash = window.location.hash.substring(1);
         const hashParams = new URLSearchParams(urlHash);
-        
+
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
         const tokenType = hashParams.get('token_type');

@@ -1436,7 +1436,7 @@ const EditEventPage = () => {
             try {
               // First save any pending changes (including date changes)
               await handleSaveChanges();
-              
+
               // Then start the event
               await updateEventStatus(id, 'Live');
               handleCloseStartDialog();

@@ -27,14 +27,18 @@ export default function AdminHeader() {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session }
+      } = await supabase.auth.getSession();
       if (session?.user) {
         setUser(session.user);
       }
     };
     getUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user || null);
     });
 
@@ -64,9 +68,9 @@ export default function AdminHeader() {
   };
 
   return (
-    <AppBar 
-      position="fixed" 
-      sx={{ 
+    <AppBar
+      position="fixed"
+      sx={{
         zIndex: 1200,
         backgroundColor: 'background.paper',
         borderBottom: '1px solid',
@@ -74,10 +78,10 @@ export default function AdminHeader() {
       }}
     >
       <Toolbar sx={{ minHeight: 64, px: { xs: 2, sm: 3 } }}>
-        <Typography 
-          variant="h6" 
-          sx={{ 
-            flexGrow: 1, 
+        <Typography
+          variant="h6"
+          sx={{
+            flexGrow: 1,
             color: 'text.primary',
             fontWeight: 600
           }}
@@ -87,19 +91,19 @@ export default function AdminHeader() {
 
         {user && (
           <Stack direction="row" spacing={2} alignItems="center">
-            <Typography 
-              variant="body2" 
-              sx={{ 
+            <Typography
+              variant="body2"
+              sx={{
                 color: 'text.secondary',
                 display: { xs: 'none', sm: 'block' }
               }}
             >
               {user.email}
             </Typography>
-            
+
             <Button
               onClick={handleMenuClick}
-              sx={{ 
+              sx={{
                 minWidth: 'auto',
                 p: 1,
                 borderRadius: '50%',
@@ -108,9 +112,9 @@ export default function AdminHeader() {
                 }
               }}
             >
-              <Avatar 
-                sx={{ 
-                  width: 32, 
+              <Avatar
+                sx={{
+                  width: 32,
                   height: 32,
                   bgcolor: 'grey.300',
                   color: 'grey.700',
@@ -127,11 +131,11 @@ export default function AdminHeader() {
               onClose={handleMenuClose}
               anchorOrigin={{
                 vertical: 'bottom',
-                horizontal: 'right',
+                horizontal: 'right'
               }}
               transformOrigin={{
                 vertical: 'top',
-                horizontal: 'right',
+                horizontal: 'right'
               }}
               PaperProps={{
                 sx: {

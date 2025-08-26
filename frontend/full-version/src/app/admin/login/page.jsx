@@ -2,17 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  Box, 
-  Container, 
-  Paper, 
-  Typography, 
-  Alert, 
-  Button, 
-  Divider,
-  useTheme,
-  useMediaQuery
-} from '@mui/material';
+import { Box, Container, Paper, Typography, Alert, Button, Divider, useTheme, useMediaQuery } from '@mui/material';
 import AdminAuthLogin from '@/sections/auth/AdminAuthLogin';
 import { supabase } from '@/utils/supabase/client';
 
@@ -24,7 +14,9 @@ export default function AdminLogin() {
 
   useEffect(() => {
     const checkExistingSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session }
+      } = await supabase.auth.getSession();
       if (session?.user?.email?.endsWith('@everspeak.ai')) {
         setExistingSession(session.user);
       }
@@ -46,27 +38,27 @@ export default function AdminLogin() {
         p: { xs: 2, sm: 3 }
       }}
     >
-      <Container 
-        maxWidth="sm" 
-        sx={{ 
+      <Container
+        maxWidth="sm"
+        sx={{
           width: '100%',
           maxWidth: { xs: '100%', sm: 480 }
         }}
       >
         {/* Header */}
         <Box sx={{ textAlign: 'center', mb: { xs: 3, sm: 4 } }}>
-          <Typography 
-            variant={isMobile ? "h4" : "h3"} 
-            sx={{ 
+          <Typography
+            variant={isMobile ? 'h4' : 'h3'}
+            sx={{
               mb: 1,
               fontWeight: 700
             }}
           >
             Admin Dashboard
           </Typography>
-          <Typography 
-            variant="body1" 
-            sx={{ 
+          <Typography
+            variant="body1"
+            sx={{
               fontSize: { xs: '0.9rem', sm: '1rem' }
             }}
           >
@@ -75,19 +67,19 @@ export default function AdminLogin() {
         </Box>
 
         {/* Main Content */}
-        <Paper 
+        <Paper
           elevation={24}
-          sx={{ 
+          sx={{
             p: { xs: 3, sm: 4 },
             borderRadius: 3,
             overflow: 'hidden' // Prevent content from popping out
           }}
         >
           {/* Info Alert */}
-          <Alert 
-            severity="info" 
-            sx={{ 
-              mb: 3, 
+          <Alert
+            severity="info"
+            sx={{
+              mb: 3,
               borderRadius: 2,
               fontSize: { xs: '0.8rem', sm: '0.875rem' }
             }}
@@ -100,11 +92,11 @@ export default function AdminLogin() {
           {/* Existing Session */}
           {existingSession && (
             <>
-              <Paper 
-                sx={{ 
-                  p: { xs: 2.5, sm: 3 }, 
-                  mb: 3, 
-                  bgcolor: 'success.light', 
+              <Paper
+                sx={{
+                  p: { xs: 2.5, sm: 3 },
+                  mb: 3,
+                  bgcolor: 'success.light',
                   color: 'success.contrastText',
                   borderRadius: 2,
                   border: '1px solid',
@@ -117,10 +109,10 @@ export default function AdminLogin() {
                 <Typography variant="body2" sx={{ mb: 2, opacity: 0.9 }}>
                   You're logged in as: <strong>{existingSession.email}</strong>
                 </Typography>
-                <Button 
-                  variant="contained" 
+                <Button
+                  variant="contained"
                   onClick={handleUseExistingSession}
-                  sx={{ 
+                  sx={{
                     bgcolor: 'success.dark',
                     '&:hover': { bgcolor: 'success.main' },
                     borderRadius: 2,
@@ -132,11 +124,11 @@ export default function AdminLogin() {
                   Continue to Dashboard
                 </Button>
               </Paper>
-              
+
               <Divider sx={{ my: 3 }}>
-                <Typography 
-                  variant="body2" 
-                  sx={{ 
+                <Typography
+                  variant="body2"
+                  sx={{
                     color: 'text.secondary',
                     px: 2,
                     bgcolor: 'background.paper'
@@ -156,9 +148,9 @@ export default function AdminLogin() {
 
         {/* Footer */}
         <Box sx={{ textAlign: 'center', mt: 3 }}>
-          <Typography 
-            variant="caption" 
-            sx={{ 
+          <Typography
+            variant="caption"
+            sx={{
               fontSize: { xs: '0.75rem', sm: '0.8rem' }
             }}
           >

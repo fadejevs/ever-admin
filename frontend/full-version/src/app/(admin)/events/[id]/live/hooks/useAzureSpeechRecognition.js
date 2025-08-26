@@ -240,7 +240,7 @@ export const useAzureSpeechRecognition = (eventData, llmProcessor, setIsRecogniz
             if (stream) {
               // console.log('[Azure] Successfully got stream for device, creating AudioConfig');
               audioConfig = SpeechSDK.AudioConfig.fromStreamInput(stream);
-                              // console.log('[Azure] AudioConfig created with custom stream');
+              // console.log('[Azure] AudioConfig created with custom stream');
             } else {
               // console.log('[Azure] No stream returned, falling back to default microphone');
               audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
@@ -466,7 +466,15 @@ export const useAzureSpeechRecognition = (eventData, llmProcessor, setIsRecogniz
 
       return startRecognizer;
     },
-    [eventData, llmProcessor, handleNewTranscription, setIsRecognizerConnecting, setRecognizerReady, currentAzureLanguageCode, audioDevices?.selectedAudioInput]
+    [
+      eventData,
+      llmProcessor,
+      handleNewTranscription,
+      setIsRecognizerConnecting,
+      setRecognizerReady,
+      currentAzureLanguageCode,
+      audioDevices?.selectedAudioInput
+    ]
   );
 
   const cleanup = useCallback(() => {

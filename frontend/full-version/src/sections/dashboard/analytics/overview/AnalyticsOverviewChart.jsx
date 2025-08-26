@@ -243,7 +243,11 @@ export default function Chart1() {
   const visibleSeries = seriesData.filter((s) => s.visible);
   const lagendItems = seriesData.map((series) => ({ label: series.label, color: series.color, visible: series.visible, id: series.id }));
 
-  const xData = useMemo(() => (p95.length || tps.length ? ts : view === ViewMode.MONTHLY ? monthlyPoints : view === ViewMode.DAILY ? dailyPoints : yearlyPoints), [p95.length, tps.length, ts, view]);
+  const xData = useMemo(
+    () =>
+      p95.length || tps.length ? ts : view === ViewMode.MONTHLY ? monthlyPoints : view === ViewMode.DAILY ? dailyPoints : yearlyPoints,
+    [p95.length, tps.length, ts, view]
+  );
 
   // Dynamic styles for visible series
   const dynamicSeriesStyles = visibleSeries.reduce((acc, series) => {

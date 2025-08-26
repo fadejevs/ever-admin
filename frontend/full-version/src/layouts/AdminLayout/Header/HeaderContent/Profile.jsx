@@ -183,19 +183,12 @@ export default function ProfileSection() {
                   <Divider sx={{ my: 1 }} />
                   <List disablePadding>
                     <ListItem
-                      secondaryAction={
-                        <Switch
-                          size="small"
-                          checked={false}
-                          disabled={true}
-                          onChange={() => {}}
-                        />
-                      }
-                      sx={{ 
-                        py: 1, 
-                        pl: 1, 
+                      secondaryAction={<Switch size="small" checked={false} disabled={true} onChange={() => {}} />}
+                      sx={{
+                        py: 1,
+                        pl: 1,
                         opacity: 0.5,
-                        '& .MuiListItemSecondaryAction-root': { right: 8 } 
+                        '& .MuiListItemSecondaryAction-root': { right: 8 }
                       }}
                     >
                       <ListItemIcon>

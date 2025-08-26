@@ -24,7 +24,9 @@ export default function AdminAuthGuard({ children }) {
   useEffect(() => {
     // Check current session
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session }
+      } = await supabase.auth.getSession();
       if (session?.user && session.user.email?.endsWith('@everspeak.ai')) {
         setUser(session.user);
       }
@@ -34,7 +36,9 @@ export default function AdminAuthGuard({ children }) {
     checkSession();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user && session.user.email?.endsWith('@everspeak.ai')) {
         setUser(session.user);
       } else {
@@ -65,9 +69,7 @@ export default function AdminAuthGuard({ children }) {
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <Stack spacing={2} sx={{ maxWidth: 400, textAlign: 'center' }}>
           <Typography variant="h5">Access Denied</Typography>
-          <Alert severity="error">
-            Only @everspeak.ai email addresses can access the admin dashboard.
-          </Alert>
+          <Alert severity="error">Only @everspeak.ai email addresses can access the admin dashboard.</Alert>
           <Button variant="contained" onClick={() => router.push('/admin/login')}>
             Go to Login
           </Button>

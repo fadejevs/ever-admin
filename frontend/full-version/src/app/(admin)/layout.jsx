@@ -12,9 +12,9 @@ export default function Layout({ children }) {
     <AdminAuthGuard>
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <AdminHeader />
-        <Box 
-          component="main" 
-          sx={{ 
+        <Box
+          component="main"
+          sx={{
             flexGrow: 1,
             pt: 8, // Account for fixed header
             backgroundColor: 'background.default'

@@ -12,17 +12,13 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Create client with fallback values to prevent crashes
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co', 
-  supabaseAnonKey || 'placeholder-key', 
-  {
-    auth: {
-      flowType: 'implicit', // Changed from 'pkce' to 'implicit' for better magic link compatibility
-      detectSessionInUrl: true,
-      autoRefreshToken: true,
-      persistSession: true,
-      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-      storageKey: 'sb-auth-token'
-    }
+export const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseAnonKey || 'placeholder-key', {
+  auth: {
+    flowType: 'implicit', // Changed from 'pkce' to 'implicit' for better magic link compatibility
+    detectSessionInUrl: true,
+    autoRefreshToken: true,
+    persistSession: true,
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    storageKey: 'sb-auth-token'
   }
-);
+});

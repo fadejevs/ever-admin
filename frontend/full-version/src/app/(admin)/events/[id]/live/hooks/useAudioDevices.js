@@ -97,4 +97,4 @@ export const useAudioDevices = () => {
     handleMenuClose,
     getSelectedDeviceStream
   };
-}; 
+};

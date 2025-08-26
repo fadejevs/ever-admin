@@ -3,7 +3,21 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Box, Typography, CircularProgress, Paper, Button, Menu, MenuItem, IconButton, useMediaQuery, useTheme, Fab, keyframes, Chip } from '@mui/material';
+import {
+  Box,
+  Typography,
+  CircularProgress,
+  Paper,
+  Button,
+  Menu,
+  MenuItem,
+  IconButton,
+  useMediaQuery,
+  useTheme,
+  Fab,
+  keyframes,
+  Chip
+} from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 
@@ -96,16 +110,8 @@ export default function BroadcastPage() {
   const [liveTranslations, setLiveTranslations] = useState({});
   const [realtimeTranslations, setRealtimeTranslations] = useState({});
 
-    const {
-    ttsLoading, 
-    autoSpeakLang, 
-    setAutoSpeakLang, 
-    queueForTTS, 
-    handleMobilePlayToggle, 
-    spokenSentences, 
-    stopTts,
-    isSpeaking
-  } = useTts(eventData);
+  const { ttsLoading, autoSpeakLang, setAutoSpeakLang, queueForTTS, handleMobilePlayToggle, spokenSentences, stopTts, isSpeaking } =
+    useTts(eventData);
 
   const translationLanguageRef = useRef(translationLanguage);
   useEffect(() => {
@@ -189,24 +195,28 @@ export default function BroadcastPage() {
 
         const targetLang = getLanguageCode(translationLanguageRef.current);
         const langCode = getBaseLangCode(targetLang);
-        
+
         // 🚀 SMART FIX: Use admin's processed translations first
         let translatedText = null;
         const startTime = Date.now(); // Performance tracking
-        
+
         // Try to get translation from admin's smart processing
         if (adminTranslations && Object.keys(adminTranslations).length > 0) {
           // Check various possible language code formats
-          translatedText = adminTranslations[langCode] || 
-                          adminTranslations[targetLang] || 
-                          adminTranslations[langCode.toUpperCase()] ||
-                          adminTranslations[targetLang.toUpperCase()];
-          
+          translatedText =
+            adminTranslations[langCode] ||
+            adminTranslations[targetLang] ||
+            adminTranslations[langCode.toUpperCase()] ||
+            adminTranslations[targetLang.toUpperCase()];
+
           if (translatedText) {
-            console.log(`[Mobile Optimized] ✅ Using admin's smart translation for ${langCode} (${Date.now() - startTime}ms):`, translatedText);
+            console.log(
+              `[Mobile Optimized] ✅ Using admin's smart translation for ${langCode} (${Date.now() - startTime}ms):`,
+              translatedText
+            );
           }
         }
-        
+
         // Fallback to individual API call only if admin translation unavailable
         if (!translatedText) {
           console.log(`[Mobile Fallback] 🔄 Admin translation not available for ${langCode}, fetching individually...`);
@@ -250,7 +260,7 @@ export default function BroadcastPage() {
             let captions = [...prev];
             // If this is an enhanced replacement, remove the old chunks first
             if (newCaption.isContextEnhanced && newCaption.replacesChunkIds.length > 0) {
-              captions = captions.filter(c => !newCaption.replacesChunkIds.includes(c.id));
+              captions = captions.filter((c) => !newCaption.replacesChunkIds.includes(c.id));
             }
             // Add the new caption
             captions.push(newCaption);
@@ -267,14 +277,13 @@ export default function BroadcastPage() {
         // PRODUCTION FIX: Only show interim text, don't translate it (expensive!)
         if (data.text?.trim()) {
           setCurrentInterimCaption(data.text);
-          
+
           // Only use admin translations if available, NO API calls for interim
           if (data.translations && translationLanguageRef.current) {
             const targetLang = getLanguageCode(translationLanguageRef.current);
             const langCode = getBaseLangCode(targetLang);
-            const adminTranslation = data.translations[langCode] || 
-                                   data.translations[targetLang];
-            
+            const adminTranslation = data.translations[langCode] || data.translations[targetLang];
+
             if (adminTranslation) {
               setRealtimeTranslations({ [langCode]: adminTranslation });
             } else {
@@ -344,7 +353,7 @@ export default function BroadcastPage() {
         fullCaption = fullCaption ? `${fullCaption} ${interimTrimmed}` : interimTrimmed;
       }
     }
-    
+
     return fullCaption;
   }, [persistedCaptions, currentInterimCaption]);
 
@@ -441,8 +450,6 @@ export default function BroadcastPage() {
       </Box>
     );
   }
-
-
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -541,7 +548,7 @@ export default function BroadcastPage() {
                     whiteSpace: 'pre-wrap'
                   }}
                 >
-                  {persistedTranslations.map(t => t.text).join(' ')}
+                  {persistedTranslations.map((t) => t.text).join(' ')}
                   <Typography
                     component="span"
                     sx={{
@@ -681,7 +688,7 @@ export default function BroadcastPage() {
                 </Typography>
               ) : (
                 <Typography variant="body1" sx={{ color: 'text.primary', pl: 2, pt: 2, whiteSpace: 'pre-wrap' }}>
-                  {persistedCaptions.map(c => c.text).join(' ')}
+                  {persistedCaptions.map((c) => c.text).join(' ')}
                   <Typography
                     component="span"
                     sx={{
@@ -691,12 +698,12 @@ export default function BroadcastPage() {
                       WebkitBackgroundClip: 'text',
                       textFillColor: 'transparent',
                       WebkitTextFillColor: 'transparent',
-                      animation: `${shimmer} 2s linear infinite`,
+                      animation: `${shimmer} 2s linear infinite`
                     }}
                   >
                     {` ${currentInterimCaption}`}
                   </Typography>
-              </Typography>
+                </Typography>
               )}
             </Box>
           </Box>
@@ -757,7 +764,7 @@ export default function BroadcastPage() {
                   </Typography>
                 ) : (
                   <Typography variant="body1" sx={{ color: 'text.primary', flex: 1, pl: 2, pt: 2, whiteSpace: 'pre-wrap' }}>
-                    {persistedTranslations.map(t => t.text).join(' ')}
+                    {persistedTranslations.map((t) => t.text).join(' ')}
                     <Typography
                       component="span"
                       sx={{
@@ -767,12 +774,12 @@ export default function BroadcastPage() {
                         WebkitBackgroundClip: 'text',
                         textFillColor: 'transparent',
                         WebkitTextFillColor: 'transparent',
-                        animation: `${shimmer} 2s linear infinite`,
+                        animation: `${shimmer} 2s linear infinite`
                       }}
                     >
                       {` ${currentInterimTranslation}`}
                     </Typography>
-                </Typography>
+                  </Typography>
                 )}
                 {/* Smart TTS Button */}
                 {(persistedTranslations.length > 0 || !!currentInterimTranslation) && (
@@ -799,9 +806,12 @@ export default function BroadcastPage() {
                           handleMobilePlayToggle(translationLanguage);
                         } else {
                           // Desktop unchanged
-                          const fullTranslationText = persistedTranslations.map(t => t.text).join(' ').trim();
+                          const fullTranslationText = persistedTranslations
+                            .map((t) => t.text)
+                            .join(' ')
+                            .trim();
                           if (!fullTranslationText) return;
-                          
+
                           const targetLang = getLanguageCode(translationLanguage);
                           const langCode = getBaseLangCode(targetLang);
 
@@ -827,9 +837,7 @@ export default function BroadcastPage() {
                         <CircularProgress size={24} sx={{ color: '#6366F1' }} />
                       ) : (
                         <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <VolumeUpIcon 
-                            color={autoSpeakLang ? (isSpeaking ? 'success' : 'primary') : 'inherit'} 
-                          />
+                          <VolumeUpIcon color={autoSpeakLang ? (isSpeaking ? 'success' : 'primary') : 'inherit'} />
                           {isSpeaking && (
                             <Box
                               sx={{
@@ -844,7 +852,6 @@ export default function BroadcastPage() {
                               }}
                             />
                           )}
-
                         </Box>
                       )}
                     </IconButton>

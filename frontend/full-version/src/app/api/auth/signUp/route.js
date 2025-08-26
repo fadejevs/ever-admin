@@ -11,19 +11,15 @@ export async function POST(request) {
     }
 
     // Create a Supabase client for this request
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
       }
-    );
+    });
 
     // Sign up the user
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email: email,
       password: Math.random().toString(36).slice(-10), // Generate a random password
       options: {
@@ -39,21 +35,20 @@ export async function POST(request) {
 
     if (error) {
       console.error('Sign up error:', error);
-      
+
       // Handle specific errors
       if (error.message.includes('User already registered')) {
         return NextResponse.json({ error: 'An account with this email already exists' }, { status: 400 });
       }
-      
+
       if (error.message.includes('rate limit') || error.message.includes('429')) {
         return NextResponse.json({ error: 'email rate limit exceeded' }, { status: 429 });
       }
-      
+
       return NextResponse.json({ error: 'Failed to create account' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, message: 'Account created successfully' });
-
   } catch (error) {
     console.error('Sign up error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

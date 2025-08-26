@@ -11,16 +11,12 @@ export async function POST(request) {
     }
 
     // Create a Supabase client for this request
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
       }
-    );
+    });
 
     // Set the session first
     const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
@@ -43,7 +39,6 @@ export async function POST(request) {
     }
 
     return NextResponse.json({ success: true, message: 'Password updated successfully' });
-
   } catch (error) {
     console.error('Reset password error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

@@ -49,8 +49,6 @@ const getFullLanguageName = (code) => {
 
 const getBaseLangCode = (code) => code?.split('-')[0]?.toLowerCase() || code;
 
-
-
 const fetchEventById = async (id) => {
   const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/events?id=eq.${id}&select=*`, {
     headers: {

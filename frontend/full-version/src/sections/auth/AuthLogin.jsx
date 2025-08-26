@@ -44,19 +44,19 @@ export default function AuthLogin({ inputSx }) {
   useEffect(() => {
     const error = searchParams.get('error');
     const details = searchParams.get('details');
-    
+
     if (error) {
       const errorMessages = {
-        'pkce_callback_failed': 'Authentication failed. Please try logging in again.',
-        'pkce_callback_exception': 'Authentication error occurred. Please try again.',
-        'session_setup_failed': 'Session setup failed. Please try logging in again.',
-        'session_exception': 'Authentication error occurred. Please try again.',
-        'no_auth_data': 'No authentication data found. Please try logging in again.',
-        'auth_signout': 'You have been signed out. Please log in again.',
-        'auth_timeout': 'Authentication timed out. Please try logging in again.',
-        'auth_error': details ? `Authentication error: ${details}` : 'Authentication error occurred. Please try again.',
-        'auth_expired': 'Your login link has expired. Please request a new one.',
-        'auth_already_used': 'This login link has already been used. Please request a new one.'
+        pkce_callback_failed: 'Authentication failed. Please try logging in again.',
+        pkce_callback_exception: 'Authentication error occurred. Please try again.',
+        session_setup_failed: 'Session setup failed. Please try logging in again.',
+        session_exception: 'Authentication error occurred. Please try again.',
+        no_auth_data: 'No authentication data found. Please try logging in again.',
+        auth_signout: 'You have been signed out. Please log in again.',
+        auth_timeout: 'Authentication timed out. Please try logging in again.',
+        auth_error: details ? `Authentication error: ${details}` : 'Authentication error occurred. Please try again.',
+        auth_expired: 'Your login link has expired. Please request a new one.',
+        auth_already_used: 'This login link has already been used. Please request a new one.'
       };
       setLoginError(errorMessages[error] || 'An error occurred during authentication. Please try again.');
     }
@@ -117,7 +117,7 @@ export default function AuthLogin({ inputSx }) {
           variant="contained"
           disabled={isProcessing}
           endIcon={isProcessing && <CircularProgress color="secondary" size={16} />}
-          sx={{ minWidth: 120, mt: { xs: 1, sm: 4 }, '& .MuiButton-endIcon': { ml: 1 }, marginTop:{ xs: 3, sm: 3 } }}
+          sx={{ minWidth: 120, mt: { xs: 1, sm: 4 }, '& .MuiButton-endIcon': { ml: 1 }, marginTop: { xs: 3, sm: 3 } }}
         >
           Send Login Link
         </Button>

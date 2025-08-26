@@ -107,19 +107,13 @@ export default function EventLivePage() {
   // WebSocket and LLM first
   const webSocket = useEventWebSocket(eventData);
   const llmProcessor = useLLMProcessor(eventData, webSocket.socketRef);
-  
+
   // Audio Devices Hook (independent initialization)
   const audioDevices = useAudioDevices();
-  
+
   // Speech Recognition Hook (uses selected audio device)
-  const speechRecognition = useAzureSpeechRecognition(
-    eventData,
-    llmProcessor,
-    setIsRecognizerConnecting,
-    setRecognizerReady,
-    audioDevices
-  );
-  
+  const speechRecognition = useAzureSpeechRecognition(eventData, llmProcessor, setIsRecognizerConnecting, setRecognizerReady, audioDevices);
+
   // Auto-pause Hook
   const autoPause = useAutoPause(eventData, setEventData, webSocket.socketRef);
 
@@ -211,7 +205,7 @@ export default function EventLivePage() {
     // Start recognition when event is live
     if (eventData.status === 'Live') {
       llmProcessor.startProcessing();
-      
+
       // Add a small delay to ensure previous recognizer is fully stopped
       setTimeout(() => {
         if (speechRecognition.startRecognizerRef.current) {
@@ -227,13 +221,12 @@ export default function EventLivePage() {
   // Handler for switching audio devices
   const handleSwitchAudioDevice = async (deviceId) => {
     // console.log('[Live] Switching to device:', deviceId);
-    
+
     // If deviceId is 'default', find the actual default device
     let actualDeviceId = deviceId;
     if (deviceId === 'default') {
-      const defaultDevice = audioDevices.audioInputDevices.find(device => 
-        device.label.toLowerCase().includes('airpods') || 
-        device.label.toLowerCase().includes('default')
+      const defaultDevice = audioDevices.audioInputDevices.find(
+        (device) => device.label.toLowerCase().includes('airpods') || device.label.toLowerCase().includes('default')
       );
       if (defaultDevice) {
         actualDeviceId = defaultDevice.deviceId;
@@ -243,12 +236,12 @@ export default function EventLivePage() {
         actualDeviceId = audioDevices.audioInputDevices[0]?.deviceId || deviceId;
       }
     }
-    
+
     // Update the selected device
     // console.log('[Live] Setting selected audio input to:', actualDeviceId);
     audioDevices.setSelectedAudioInput(actualDeviceId);
-          // console.log('[Live] Device state updated, current selection:', audioDevices.selectedAudioInput);
-    
+    // console.log('[Live] Device state updated, current selection:', audioDevices.selectedAudioInput);
+
     // Restart recognition with new device if currently live
     if (eventData?.status === 'Live' && speechRecognition.recognizerRef.current) {
       // console.log('[Live] Restarting recognition with new device');
@@ -292,9 +285,6 @@ export default function EventLivePage() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-
-
 
   if (loading) {
     return (
@@ -370,7 +360,6 @@ export default function EventLivePage() {
             alignItems: 'center'
           }}
         >
-
           <Button
             variant="outlined"
             onClick={eventStatus.handlePauseResumeEvent}
@@ -382,15 +371,10 @@ export default function EventLivePage() {
               borderRadius: '8px',
               flex: { xs: 1, sm: 'initial' },
               fontSize: { xs: '0.875rem', sm: '1rem' },
-              opacity: webSocket.isConnecting ? 0.6 : 1,
+              opacity: webSocket.isConnecting ? 0.6 : 1
             }}
           >
-            {webSocket.isConnecting
-              ? 'Connecting...'
-              : eventData?.status === 'Paused' 
-                ? 'Resume Event' 
-                : 'Pause Event'
-            }
+            {webSocket.isConnecting ? 'Connecting...' : eventData?.status === 'Paused' ? 'Resume Event' : 'Pause Event'}
           </Button>
           <Button
             variant="contained"
@@ -403,7 +387,7 @@ export default function EventLivePage() {
               borderRadius: '8px',
               flex: { xs: 1, sm: 'initial' },
               fontSize: { xs: '0.875rem', sm: '1rem' },
-              opacity: webSocket.isConnecting ? 0.6 : 1,
+              opacity: webSocket.isConnecting ? 0.6 : 1
             }}
           >
             {webSocket.isConnecting ? 'Connecting...' : 'Complete Event'}
@@ -413,9 +397,9 @@ export default function EventLivePage() {
 
       {/* Auto-pause notification */}
       {autoPause.wasAutoPaused && eventData?.status === 'Paused' && (
-        <Alert 
-          severity="info" 
-          sx={{ 
+        <Alert
+          severity="info"
+          sx={{
             mb: { xs: 3, sm: 4 },
             '& .MuiAlert-message': {
               fontSize: { xs: '0.875rem', sm: '1rem' }
@@ -423,8 +407,8 @@ export default function EventLivePage() {
           }}
           onClose={() => autoPause.setWasAutoPaused(false)}
         >
-          <strong>Event Auto-Paused:</strong> The event was automatically paused due to a browser refresh. 
-          Click "Resume Event" to start transcription.
+          <strong>Event Auto-Paused:</strong> The event was automatically paused due to a browser refresh. Click "Resume Event" to start
+          transcription.
         </Alert>
       )}
 
@@ -584,7 +568,6 @@ export default function EventLivePage() {
                 }
               }}
             />
-
           </Box>
           <Box
             sx={{
@@ -609,7 +592,7 @@ export default function EventLivePage() {
               }}
             >
               {(() => {
-                const currentDevice = audioDevices.audioInputDevices.find(d => d.deviceId === audioDevices.selectedAudioInput);
+                const currentDevice = audioDevices.audioInputDevices.find((d) => d.deviceId === audioDevices.selectedAudioInput);
                 if (currentDevice) {
                   if (currentDevice.label.includes('AirPods')) return 'AirPods';
                   if (currentDevice.label.includes('Built-in')) return 'MacBook Mic';
@@ -635,7 +618,7 @@ export default function EventLivePage() {
                 <MenuItem disabled>No audio inputs found</MenuItem>
               ) : (
                 audioDevices.audioInputDevices
-                  .filter(device => device.deviceId !== 'default') // Filter out the confusing 'default' option
+                  .filter((device) => device.deviceId !== 'default') // Filter out the confusing 'default' option
                   .map((device) => {
                     // Create a better display name
                     let displayName = device.label;
@@ -646,22 +629,22 @@ export default function EventLivePage() {
                     } else if (displayName.includes('iPhone')) {
                       displayName = 'iPhone Microphone';
                     }
-                    
+
                     return (
-                  <MenuItem
-                    key={device.deviceId}
-                    selected={device.deviceId === audioDevices.selectedAudioInput}
+                      <MenuItem
+                        key={device.deviceId}
+                        selected={device.deviceId === audioDevices.selectedAudioInput}
                         onClick={async () => {
                           try {
                             await handleSwitchAudioDevice(device.deviceId);
                           } catch (err) {
                             console.error('Error switching audio device:', err);
                           }
-                      audioDevices.handleMenuClose();
-                    }}
-                  >
+                          audioDevices.handleMenuClose();
+                        }}
+                      >
                         {displayName}
-                  </MenuItem>
+                      </MenuItem>
                     );
                   })
               )}

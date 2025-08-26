@@ -73,4 +73,4 @@ export const useAutoPause = (eventData, setEventData, socketRef) => {
     wasAutoPaused,
     setWasAutoPaused
   };
-}; 
+};

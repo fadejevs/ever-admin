@@ -14,7 +14,6 @@ export const useLLMProcessor = (eventData, socketRef) => {
   // Throttled preview for live feedback while LLM is working
   const lastPreviewSentRef = useRef(0);
 
-
   // Smart sentence boundary detection
   const detectSentenceBoundaries = useCallback((text) => {
     if (!text) return false;
@@ -117,16 +116,19 @@ export const useLLMProcessor = (eventData, socketRef) => {
       if (!currentText) return { cleaned: '', newContext: context };
 
       // Filter context to avoid overlap with current text
-      const contextText = context.length > 0 ? 
-        context.filter(sentence => {
-          // Remove context sentences that overlap significantly with current text
-          const overlap = sentence.toLowerCase().split(' ').some(word => 
-            word.length > 3 && currentText.toLowerCase().includes(word)
-          );
-          return !overlap;
-        }).join(' ') : '';
-
-
+      const contextText =
+        context.length > 0
+          ? context
+              .filter((sentence) => {
+                // Remove context sentences that overlap significantly with current text
+                const overlap = sentence
+                  .toLowerCase()
+                  .split(' ')
+                  .some((word) => word.length > 3 && currentText.toLowerCase().includes(word));
+                return !overlap;
+              })
+              .join(' ')
+          : '';
 
       // Enhanced system prompt to prevent hallucination
       const systemPrompt = `You are cleaning transcribed speech. Your ONLY job is to clean up the spoken words by:
@@ -168,19 +170,19 @@ CLEAN THIS TRANSCRIBED SPEECH:`;
 
         const data = await response.json();
         const llmResponse = data.choices?.[0]?.message?.content?.trim() || '';
-        
+
         // Trust the LLM completely - no quality checks
         const originalText = textArray.join(' ');
-        
+
         // Basic existence check only
         if (!passesQualityCheck(llmResponse)) {
           console.warn('[LLM] 🚫 Empty or invalid response - using original');
           return { cleaned: originalText, newContext: [...context, currentText] };
         }
-        
+
         // Final duplicate detection in cleaned text
         let cleaned = llmResponse;
-        
+
         // Remove any hallucinated content about training data or model capabilities
         const hallucinationPatterns = [
           /trained up to \d{4}/i,
@@ -194,19 +196,19 @@ CLEAN THIS TRANSCRIBED SPEECH:`;
           /my training/i,
           /my knowledge/i
         ];
-        
-        hallucinationPatterns.forEach(pattern => {
+
+        hallucinationPatterns.forEach((pattern) => {
           cleaned = cleaned.replace(pattern, '');
         });
-        
+
         // Clean up any double spaces or punctuation artifacts
         cleaned = cleaned.replace(/\s+/g, ' ').trim();
-        
+
         // Detect and remove obvious sentence duplicates within the response
-        const cleanedSentences = cleaned.split(/[.!?]+/).filter(s => s.trim().length > 5);
+        const cleanedSentences = cleaned.split(/[.!?]+/).filter((s) => s.trim().length > 5);
         const uniqueSentences = [];
         const seenSentences = new Set();
-        
+
         for (const sentence of cleanedSentences) {
           const normalized = sentence.trim().toLowerCase();
           if (!seenSentences.has(normalized) && normalized.length > 5) {
@@ -214,7 +216,7 @@ CLEAN THIS TRANSCRIBED SPEECH:`;
             uniqueSentences.push(sentence.trim());
           }
         }
-        
+
         if (uniqueSentences.length < cleanedSentences.length) {
           cleaned = uniqueSentences.join('. ').trim();
           if (cleaned && !cleaned.endsWith('.') && !cleaned.endsWith('!') && !cleaned.endsWith('?')) {
@@ -224,14 +226,14 @@ CLEAN THIS TRANSCRIBED SPEECH:`;
 
         // Extract sentences for context (keep last 1-2 sentences) with duplicate prevention
         const sentences = cleaned.split(/[.!?]+/).filter((s) => s.trim().length > 10);
-        
+
         // Only keep sentences that are significantly different from current input
-        const distinctSentences = sentences.filter(sentence => {
-          const similarity = currentText.toLowerCase().includes(sentence.toLowerCase().trim()) ||
-                           sentence.toLowerCase().includes(currentText.toLowerCase());
+        const distinctSentences = sentences.filter((sentence) => {
+          const similarity =
+            currentText.toLowerCase().includes(sentence.toLowerCase().trim()) || sentence.toLowerCase().includes(currentText.toLowerCase());
           return !similarity;
         });
-        
+
         const newContext = distinctSentences.slice(-2); // Keep last 2 distinct sentences as context
 
         return { cleaned, newContext };
@@ -382,7 +384,10 @@ CLEAN THIS TRANSCRIBED SPEECH:`;
         // Emit throttled live preview for mobile users while waiting
         const now = Date.now();
         if (socketRef.current && socketRef.current.connected && now - lastPreviewSentRef.current > 800) {
-          const previewText = newBuffer.map((i) => i.text).join(' ').slice(0, 220);
+          const previewText = newBuffer
+            .map((i) => i.text)
+            .join(' ')
+            .slice(0, 220);
           if (previewText && previewText.length > 10) {
             lastPreviewSentRef.current = now;
             socketRef.current.emit('realtime_transcription', {
@@ -432,4 +437,4 @@ CLEAN THIS TRANSCRIBED SPEECH:`;
     startProcessing,
     stopProcessing
   };
-}; 
+};

@@ -10,7 +10,7 @@ let isProcessingOpenAIQueue = false;
 const speakWithOpenAIImmediate = async (text, lang, eventData, setIsSpeaking, audioContextRef) => {
   try {
     console.log('[TTS] Starting TTS for:', text.substring(0, 50) + '...');
-    
+
     // Stop any currently playing audio first
     if (currentAudioSource) {
       try {
@@ -80,7 +80,7 @@ const speakWithOpenAIImmediate = async (text, lang, eventData, setIsSpeaking, au
 
     const audioBlob = await response.blob();
     console.log('[TTS] Got audio blob, size:', audioBlob.size);
-    
+
     // Hybrid approach: Use HTML5 Audio for initial user gesture, Web Audio API for autoplay
     let audioUrl = null;
     // Use HTML5 Audio for the very first play on any platform to satisfy autoplay policies
@@ -95,7 +95,7 @@ const speakWithOpenAIImmediate = async (text, lang, eventData, setIsSpeaking, au
       // Use Web Audio API for autoplay (works after first gesture)
       console.log('[TTS] Using Web Audio API for autoplay');
       const arrayBuffer = await audioBlob.arrayBuffer();
-      
+
       // Get or create AudioContext
       let audioContext = audioContextRef.current;
       if (!audioContext) {
@@ -109,9 +109,9 @@ const speakWithOpenAIImmediate = async (text, lang, eventData, setIsSpeaking, au
           return false;
         }
       }
-      
+
       console.log('[TTS] AudioContext state:', audioContext.state);
-      
+
       // Ensure AudioContext is running
       if (audioContext.state !== 'running') {
         console.log('[TTS] Resuming AudioContext...');
@@ -123,7 +123,7 @@ const speakWithOpenAIImmediate = async (text, lang, eventData, setIsSpeaking, au
           return false;
         }
       }
-      
+
       // Decode the audio data
       console.log('[TTS] Decoding audio data...');
       let audioBuffer;
@@ -134,7 +134,7 @@ const speakWithOpenAIImmediate = async (text, lang, eventData, setIsSpeaking, au
         console.error('[TTS] Failed to decode audio data:', error);
         return false;
       }
-      
+
       // Create and play the audio
       const source = audioContext.createBufferSource();
       source.buffer = audioBuffer;
@@ -152,7 +152,7 @@ const speakWithOpenAIImmediate = async (text, lang, eventData, setIsSpeaking, au
       if (currentAudioSource.pause) {
         // HTML5 Audio
         const audio = currentAudioSource;
-        
+
         audio.onended = () => {
           if (audioUrl) URL.revokeObjectURL(audioUrl);
           cleanup();
@@ -168,17 +168,20 @@ const speakWithOpenAIImmediate = async (text, lang, eventData, setIsSpeaking, au
 
         // Start playing immediately
         console.log('[TTS] Starting HTML5 Audio playback...');
-        audio.play().then(() => {
-          console.log('[TTS] HTML5 Audio started successfully');
-        }).catch((error) => {
-          console.error('[TTS] Failed to start HTML5 Audio:', error);
-          cleanup();
-          resolve(false);
-        });
+        audio
+          .play()
+          .then(() => {
+            console.log('[TTS] HTML5 Audio started successfully');
+          })
+          .catch((error) => {
+            console.error('[TTS] Failed to start HTML5 Audio:', error);
+            cleanup();
+            resolve(false);
+          });
       } else {
         // Web Audio API
         const source = currentAudioSource;
-        
+
         source.onended = () => {
           console.log('[TTS] Web Audio ended successfully');
           cleanup();
@@ -274,7 +277,7 @@ export const useTts = (eventData) => {
   const queueForTTS = useCallback(
     (text, lang) => {
       console.log('[TTS] queueForTTS called with:', text.substring(0, 30) + '...', 'lang:', lang, 'autoSpeakLang:', autoSpeakLang);
-      
+
       if (spokenSentences.current.has(text)) {
         console.log('[TTS] Text already spoken, skipping');
         return;
@@ -292,10 +295,10 @@ export const useTts = (eventData) => {
     [eventData, autoSpeakLang]
   );
 
-    const handleMobilePlayToggle = useCallback(
+  const handleMobilePlayToggle = useCallback(
     async (currentTranslationLanguage) => {
       console.log('[TTS] Mobile toggle called, current autoSpeakLang:', autoSpeakLang);
-      
+
       if (autoSpeakLang) {
         // Turn off TTS
         console.log('[TTS] Turning off TTS');
@@ -312,7 +315,7 @@ export const useTts = (eventData) => {
           const targetLang = getLanguageCode(currentTranslationLanguage);
           const langCode = getBaseLangCode(targetLang);
           console.log('[TTS] Target language:', targetLang, 'Lang code:', langCode);
-          
+
           // Initialize audio session with user interaction
           if (audioContextRef.current && audioContextRef.current.state !== 'running') {
             console.log('[TTS] Resuming AudioContext for mobile toggle');
@@ -323,7 +326,7 @@ export const useTts = (eventData) => {
           console.log('[TTS] Testing TTS with "Activated" message');
           const success = await speakWithOpenAIImmediate('Activated', langCode, eventData, setIsSpeaking, audioContextRef);
           console.log('[TTS] TTS test result:', success);
-          
+
           if (success) {
             setAutoSpeakLang(langCode);
             console.log('[TTS] TTS activated successfully');
@@ -346,7 +349,7 @@ export const useTts = (eventData) => {
         }
       }
     };
-    
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     // Cleanup on unmount
@@ -368,4 +371,3 @@ export const useTts = (eventData) => {
     isSpeaking
   };
 };
-

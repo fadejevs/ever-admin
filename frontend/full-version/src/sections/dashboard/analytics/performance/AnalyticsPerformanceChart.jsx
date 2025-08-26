@@ -100,7 +100,10 @@ export default function AnalyticsPerformanceChart() {
     setVisibilityOption((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const xLabels = useMemo(() => (p95.length || tps.length ? ts.map((d) => d.toLocaleTimeString()) : xLabelsMapping[view] || xLabelsYearly), [p95.length, tps.length, ts, view]);
+  const xLabels = useMemo(
+    () => (p95.length || tps.length ? ts.map((d) => d.toLocaleTimeString()) : xLabelsMapping[view] || xLabelsYearly),
+    [p95.length, tps.length, ts, view]
+  );
 
   const seriesData = [
     {

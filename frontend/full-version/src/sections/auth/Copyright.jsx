@@ -27,7 +27,10 @@ export default function Copyright() {
 
   return (
     <Stack sx={{ gap: 1, width: 'fit-content', mx: 'auto', pb: { xs: 2, sm: 0 } }}>
-      <Stack direction="row" sx={{ flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'center', gap: { xs: 1, sm: 1.5 }, textAlign: 'center' }}>
+      <Stack
+        direction="row"
+        sx={{ flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'center', gap: { xs: 1, sm: 1.5 }, textAlign: 'center' }}
+      >
         <Typography variant="caption" color="text.secondary" sx={copyrightSX}>
           © 2025 {branding.brandName}
         </Typography>

@@ -18,7 +18,17 @@ import Copyright from '@/sections/auth/Copyright';
 
 export default function Register() {
   return (
-    <Stack sx={{ height: 1, minHeight: { xs: '100vh', md: 'auto' }, alignItems: 'center', justifyContent: 'space-between', gap: 3, pt: { xs: 6, sm: 8, md: 0 }, pb: { xs: 3, sm: 4, md: 0 } }}>
+    <Stack
+      sx={{
+        height: 1,
+        minHeight: { xs: '100vh', md: 'auto' },
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 3,
+        pt: { xs: 6, sm: 8, md: 0 },
+        pb: { xs: 3, sm: 4, md: 0 }
+      }}
+    >
       <Box sx={{ width: 1, maxWidth: 458 }}>
         <Stack sx={{ gap: { xs: 1.25, sm: 1.5 }, textAlign: 'center', mb: { xs: 4, sm: 8 } }}>
           <Typography variant="h1">Sign Up</Typography>

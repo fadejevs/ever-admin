@@ -39,11 +39,11 @@ export default function Dashboard() {
   return (
     <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
       <Stack sx={{ gap: { xs: 2, sm: 3, md: 4 } }}>
-        <Tabs 
-          variant={isMobile ? "fullWidth" : "scrollable"} 
-          scrollButtons={isMobile ? false : "auto"} 
-          value={activeTab} 
-          onChange={handleTabChange} 
+        <Tabs
+          variant={isMobile ? 'fullWidth' : 'scrollable'}
+          scrollButtons={isMobile ? false : 'auto'}
+          value={activeTab}
+          onChange={handleTabChange}
           aria-label="analytics tabs"
           sx={{
             '& .MuiTab-root': {

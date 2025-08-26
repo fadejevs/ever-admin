@@ -149,8 +149,6 @@ export default function SearchBar() {
     setIsEmptySearch(true);
   };
 
-
-
   const getStatusChip = (status) => {
     switch (status) {
       case 'Draft event':

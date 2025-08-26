@@ -194,15 +194,15 @@ const EventsPage = () => {
                     <input type="checkbox" />
                   </TableCell>
                   <TableCell>{transcript.original_text}</TableCell>
-                                  <TableCell>
-                  {formatDate(
-                    transcript.timestamp instanceof Date
-                      ? transcript.timestamp
-                      : transcript.timestamp && transcript.timestamp.seconds
-                      ? new Date(transcript.timestamp.seconds * 1000)
-                      : new Date(transcript.timestamp)
-                  )}
-                </TableCell>
+                  <TableCell>
+                    {formatDate(
+                      transcript.timestamp instanceof Date
+                        ? transcript.timestamp
+                        : transcript.timestamp && transcript.timestamp.seconds
+                          ? new Date(transcript.timestamp.seconds * 1000)
+                          : new Date(transcript.timestamp)
+                    )}
+                  </TableCell>
                   <TableCell>{locations[index % locations.length]}</TableCell>
                   <TableCell>{index % 2 === 0 ? 'Online' : 'On-site'}</TableCell>
                   <TableCell>{getStatusChip(transcript.type)}</TableCell>

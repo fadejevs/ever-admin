@@ -16,11 +16,11 @@ export default function AuthCallbackSuccess() {
     const handleAuth = async () => {
       try {
         console.log('Auth success: Starting authentication process...');
-        
+
         // Check for URL parameters that might indicate an error
         const error = searchParams.get('error');
         const errorDescription = searchParams.get('error_description');
-        
+
         if (error) {
           console.error('Auth success: Error in URL parameters:', error, errorDescription);
           setStatus('Authentication failed. Redirecting to login...');

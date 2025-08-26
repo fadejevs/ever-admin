@@ -61,7 +61,7 @@ export default function AdminAuthLogin() {
       setSuccess('Magic link sent! Check your email.');
     } catch (error) {
       console.error('Admin login error:', error);
-      
+
       // Provide user-friendly error messages
       let errorMessage = error.message;
       if (error.message.includes('rate limit') || error.message.includes('429')) {
@@ -71,7 +71,7 @@ export default function AdminAuthLogin() {
       } else if (error.message.includes('Email not confirmed')) {
         errorMessage = 'Please check your email and click the confirmation link first.';
       }
-      
+
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -82,9 +82,9 @@ export default function AdminAuthLogin() {
     <Box sx={{ width: '100%', overflow: 'hidden' }}>
       <form onSubmit={handleSubmit}>
         <Stack spacing={isMobile ? 2.5 : 3} sx={{ width: '100%' }}>
-          <Typography 
-            variant="h6" 
-            sx={{ 
+          <Typography
+            variant="h6"
+            sx={{
               fontSize: { xs: '1.1rem', sm: '1.25rem' },
               fontWeight: 600,
               textAlign: 'center'
@@ -92,7 +92,7 @@ export default function AdminAuthLogin() {
           >
             Admin Login
           </Typography>
-          
+
           <TextField
             label="Email Address"
             type="email"
@@ -114,9 +114,9 @@ export default function AdminAuthLogin() {
           />
 
           {error && (
-            <Alert 
-              severity="error" 
-              sx={{ 
+            <Alert
+              severity="error"
+              sx={{
                 borderRadius: 2,
                 fontSize: { xs: '0.8rem', sm: '0.875rem' },
                 '& .MuiAlert-message': {
@@ -130,11 +130,11 @@ export default function AdminAuthLogin() {
               </Typography>
             </Alert>
           )}
-          
+
           {success && (
-            <Alert 
-              severity="success" 
-              sx={{ 
+            <Alert
+              severity="success"
+              sx={{
                 borderRadius: 2,
                 fontSize: { xs: '0.8rem', sm: '0.875rem' },
                 '& .MuiAlert-message': {
@@ -154,7 +154,7 @@ export default function AdminAuthLogin() {
             variant="contained"
             disabled={loading}
             fullWidth
-            sx={{ 
+            sx={{
               height: { xs: 44, sm: 48 },
               borderRadius: 2,
               fontSize: { xs: '0.9rem', sm: '1rem' },
@@ -162,11 +162,7 @@ export default function AdminAuthLogin() {
               textTransform: 'none'
             }}
           >
-            {loading ? (
-              <CircularProgress size={20} color="inherit" />
-            ) : (
-              'Send Magic Link'
-            )}
+            {loading ? <CircularProgress size={20} color="inherit" /> : 'Send Magic Link'}
           </Button>
         </Stack>
       </form>

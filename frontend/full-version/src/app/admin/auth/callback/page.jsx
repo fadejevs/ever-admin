@@ -14,14 +14,14 @@ export default function AdminAuthCallback() {
   useEffect(() => {
     const handleCallback = async () => {
       const code = searchParams.get('code');
-      
+
       if (code) {
         try {
           setStatus('Authenticating...');
           const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-          
+
           if (error) throw error;
-          
+
           if (data?.session?.user?.email?.endsWith('@everspeak.ai')) {
             setStatus('Success! Redirecting to admin dashboard...');
             setTimeout(() => router.push('/dashboard'), 1000);
@@ -44,29 +44,27 @@ export default function AdminAuthCallback() {
   }, [router, searchParams]);
 
   return (
-    <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'column',
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      height: '100vh',
-      gap: 2,
-      p: 3
-    }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        gap: 2,
+        p: 3
+      }}
+    >
       <CircularProgress />
       <Typography variant="h6">{status}</Typography>
-      
+
       {error && (
         <Alert severity="error" sx={{ maxWidth: 400 }}>
           {error}
         </Alert>
       )}
-      
-      <Button 
-        variant="outlined" 
-        onClick={() => router.push('/admin/login')}
-        sx={{ mt: 2 }}
-      >
+
+      <Button variant="outlined" onClick={() => router.push('/admin/login')} sx={{ mt: 2 }}>
         Back to Login
       </Button>
     </Box>
