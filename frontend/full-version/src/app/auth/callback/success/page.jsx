@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/utils/supabase/client';
 
 export default function AuthCallbackSuccess() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [status, setStatus] = useState('Processing...');
 
   useEffect(() => {
@@ -14,6 +15,21 @@ export default function AuthCallbackSuccess() {
 
     const handleAuth = async () => {
       try {
+        console.log('Auth success: Starting authentication process...');
+        
+        // Check for URL parameters that might indicate an error
+        const error = searchParams.get('error');
+        const errorDescription = searchParams.get('error_description');
+        
+        if (error) {
+          console.error('Auth success: Error in URL parameters:', error, errorDescription);
+          setStatus('Authentication failed. Redirecting to login...');
+          setTimeout(() => {
+            router.replace(`/login?error=auth_error&details=${encodeURIComponent(errorDescription || error)}`);
+          }, 1000);
+          return;
+        }
+
         // First, check if there's already a session
         const {
           data: { session: initialSession }
@@ -49,6 +65,12 @@ export default function AuthCallbackSuccess() {
             setTimeout(() => {
               router.replace('/login?error=auth_signout');
             }, 1000);
+          } else if (event === 'TOKEN_REFRESHED' && session) {
+            console.log('Auth success: Token refreshed successfully');
+            setStatus('Authentication successful! Redirecting...');
+            setTimeout(() => {
+              router.replace('/dashboard/analytics');
+            }, 500);
           }
         });
 
@@ -82,7 +104,7 @@ export default function AuthCallbackSuccess() {
         subscription.unsubscribe();
       }
     };
-  }, [router]);
+  }, [router, searchParams]);
 
   return (
     <div
@@ -96,56 +118,33 @@ export default function AuthCallbackSuccess() {
     >
       <div
         style={{
-          marginBottom: '20px',
           fontSize: '24px',
-          color: '#333'
+          marginBottom: '20px',
+          animation: 'pulse 1.5s ease-in-out infinite'
         }}
       >
-        🔐 Authenticating...
+        🔐
       </div>
-
-      <div
+      <p
         style={{
-          marginBottom: '20px',
           fontSize: '16px',
-          color: '#666'
+          color: '#666',
+          lineHeight: '1.5'
         }}
       >
         {status}
-      </div>
-
-      <div
-        style={{
-          width: '40px',
-          height: '40px',
-          border: '4px solid #f3f3f3',
-          borderTop: '4px solid #007bff',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite',
-          margin: '0 auto'
-        }}
-      />
-
+      </p>
       <style jsx>{`
-        @keyframes spin {
-          0% {
-            transform: rotate(0deg);
-          }
+        @keyframes pulse {
+          0%,
           100% {
-            transform: rotate(360deg);
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.5;
           }
         }
       `}</style>
-
-      <div
-        style={{
-          marginTop: '30px',
-          fontSize: '14px',
-          color: '#999'
-        }}
-      >
-        Please wait while we complete your sign in...
-      </div>
     </div>
   );
 }

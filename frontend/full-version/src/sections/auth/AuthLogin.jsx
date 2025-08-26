@@ -2,9 +2,9 @@
 import PropTypes from 'prop-types';
 
 // @next
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // @mui
 import { useTheme } from '@mui/material/styles';
@@ -26,6 +26,7 @@ import { emailSchema } from '@/utils/validationSchema';
 
 export default function AuthLogin({ inputSx }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const theme = useTheme();
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -38,6 +39,28 @@ export default function AuthLogin({ inputSx }) {
     reset,
     formState: { errors }
   } = useForm({ defaultValues: { email: '' } });
+
+  // Handle error parameters from URL
+  useEffect(() => {
+    const error = searchParams.get('error');
+    const details = searchParams.get('details');
+    
+    if (error) {
+      const errorMessages = {
+        'pkce_callback_failed': 'Authentication failed. Please try logging in again.',
+        'pkce_callback_exception': 'Authentication error occurred. Please try again.',
+        'session_setup_failed': 'Session setup failed. Please try logging in again.',
+        'session_exception': 'Authentication error occurred. Please try again.',
+        'no_auth_data': 'No authentication data found. Please try logging in again.',
+        'auth_signout': 'You have been signed out. Please log in again.',
+        'auth_timeout': 'Authentication timed out. Please try logging in again.',
+        'auth_error': details ? `Authentication error: ${details}` : 'Authentication error occurred. Please try again.',
+        'auth_expired': 'Your login link has expired. Please request a new one.',
+        'auth_already_used': 'This login link has already been used. Please request a new one.'
+      };
+      setLoginError(errorMessages[error] || 'An error occurred during authentication. Please try again.');
+    }
+  }, [searchParams]);
 
   // Handle form submission
   const onSubmit = async (formData) => {

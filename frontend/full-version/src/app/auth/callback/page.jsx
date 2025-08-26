@@ -94,10 +94,19 @@ export default function AuthCallback() {
             }, 500);
           } else {
             console.error('Auth callback: PKCE error:', error);
+            
+            // Check for specific error types
+            let errorType = 'pkce_callback_failed';
+            if (error?.message?.includes('expired') || error?.message?.includes('invalid')) {
+              errorType = 'auth_expired';
+            } else if (error?.message?.includes('already been used')) {
+              errorType = 'auth_already_used';
+            }
+            
             setStatus('Authentication failed. Redirecting to login...');
 
             setTimeout(() => {
-              router.replace('/login?error=pkce_callback_failed');
+              router.replace(`/login?error=${errorType}`);
             }, 2000);
           }
         } catch (error) {

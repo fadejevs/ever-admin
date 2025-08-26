@@ -14,3 +14,15 @@ export function createSupabaseClient() {
     throw new Error('Supabase URL and anon key are required.');
   }
 }
+
+// Create admin client for server-side operations
+export const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+);
