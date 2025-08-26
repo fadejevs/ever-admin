@@ -220,3 +220,6 @@ Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
  ✓ Starting...
  ✓ Ready in 965ms
    Reload env: .env.development
+   Reload env: .env.local
+   Reload env: .env.local
+   Reload env: .env.local
