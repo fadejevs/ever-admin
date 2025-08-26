@@ -15,11 +15,11 @@ export const useAudioDevices = () => {
         const audioInputs = devices.filter((device) => device.kind === 'audioinput');
         // console.log('[Audio] Available devices:', audioInputs.map(d => ({ id: d.deviceId, label: d.label })));
         setAudioInputDevices(audioInputs);
-        
+
         // Set default device if none selected, but avoid the 'default' system ID
         if (!selectedAudioInput && audioInputs.length > 0) {
           // Find the first non-system device (avoid 'default' ID)
-          const firstRealDevice = audioInputs.find(device => device.deviceId !== 'default');
+          const firstRealDevice = audioInputs.find((device) => device.deviceId !== 'default');
           const deviceToUse = firstRealDevice || audioInputs[0];
           setSelectedAudioInput(deviceToUse.deviceId);
           selectedAudioInputRef.current = deviceToUse.deviceId;
@@ -41,7 +41,7 @@ export const useAudioDevices = () => {
     return () => {
       navigator.mediaDevices.removeEventListener('devicechange', handleDeviceChange);
     };
-  }, []);
+  }, [selectedAudioInput]);
 
   // Get audio stream for selected device
   const getSelectedDeviceStream = async () => {
@@ -50,9 +50,9 @@ export const useAudioDevices = () => {
       console.log('[Audio] No device selected, using default');
       return null;
     }
-    
+
     // console.log('[Audio] Getting stream for device:', currentDevice);
-    
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {

@@ -34,13 +34,13 @@ export const useAutoPause = (eventData, setEventData, socketRef) => {
       // Only auto-pause if this is the FIRST time we're checking AND event is Live
       if (eventData && eventData.status === 'Live' && !hasCheckedInitialAutoPause.current) {
         hasCheckedInitialAutoPause.current = true; // Mark that we've checked
-        
+
         try {
           // Update to Paused status
           await updateEventStatus(eventData.id, 'Paused');
           setEventData((prev) => ({ ...prev, status: 'Paused' }));
           setWasAutoPaused(true); // Set auto-pause flag
-          
+
           // Notify participants with retry logic
           const notifyParticipants = () => {
             if (socketRef.current && socketRef.current.connected) {
@@ -53,7 +53,7 @@ export const useAutoPause = (eventData, setEventData, socketRef) => {
               setTimeout(notifyParticipants, 1000);
             }
           };
-          
+
           notifyParticipants();
         } catch (error) {
           console.error('[Auto-Pause] Failed to auto-pause:', error);
