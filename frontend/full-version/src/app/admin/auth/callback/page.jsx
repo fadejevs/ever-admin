@@ -13,15 +13,43 @@ export default function AdminAuthCallback() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      const code = searchParams.get('code');
+      try {
+        // Check for URL hash tokens (from magic link)
+        const urlHash = window.location.hash.substring(1);
+        const hashParams = new URLSearchParams(urlHash);
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        const tokenType = hashParams.get('token_type');
 
-      if (code) {
-        try {
-          setStatus('Authenticating...');
-          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        // Check for PKCE code in query parameters
+        const code = searchParams.get('code');
+
+        if (accessToken && tokenType === 'bearer') {
+          // Handle tokens from URL hash
+          setStatus('Setting up admin session...');
+          
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken || ''
+          });
 
           if (error) throw error;
 
+          if (data?.session?.user?.email?.endsWith('@everspeak.ai')) {
+            setStatus('Admin authentication successful! Redirecting...');
+            setTimeout(() => router.push('/dashboard'), 1000);
+          } else {
+            setError('Access denied. Only @everspeak.ai emails allowed.');
+            await supabase.auth.signOut();
+            setTimeout(() => router.push('/admin/login'), 2000);
+          }
+        } else if (code) {
+          // Handle PKCE code
+          setStatus('Authenticating...');
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          
+          if (error) throw error;
+          
           if (data?.session?.user?.email?.endsWith('@everspeak.ai')) {
             setStatus('Success! Redirecting to admin dashboard...');
             setTimeout(() => router.push('/dashboard'), 1000);
@@ -30,12 +58,12 @@ export default function AdminAuthCallback() {
             await supabase.auth.signOut();
             setTimeout(() => router.push('/admin/login'), 2000);
           }
-        } catch (error) {
-          setError('Authentication failed: ' + error.message);
+        } else {
+          setError('No authentication data found.');
           setTimeout(() => router.push('/admin/login'), 2000);
         }
-      } else {
-        setError('No authentication code found.');
+      } catch (error) {
+        setError('Authentication failed: ' + error.message);
         setTimeout(() => router.push('/admin/login'), 2000);
       }
     };
@@ -44,29 +72,21 @@ export default function AdminAuthCallback() {
   }, [router, searchParams]);
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        gap: 2,
-        p: 3
-      }}
-    >
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      minHeight: '100vh',
+      gap: 2
+    }}>
       <CircularProgress />
       <Typography variant="h6">{status}</Typography>
-
       {error && (
         <Alert severity="error" sx={{ maxWidth: 400 }}>
           {error}
         </Alert>
       )}
-
-      <Button variant="outlined" onClick={() => router.push('/admin/login')} sx={{ mt: 2 }}>
-        Back to Login
-      </Button>
     </Box>
   );
 }
