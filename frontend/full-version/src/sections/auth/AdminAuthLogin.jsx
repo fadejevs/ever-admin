@@ -102,13 +102,24 @@ export default function AdminAuthLogin() {
             required
             fullWidth
             disabled={loading}
+            InputLabelProps={{
+              sx: {
+                fontSize: { xs: '0.85rem', sm: '0.875rem' },
+                lineHeight: 1.2,
+                top: '50%',
+                left: '20px',
+                opacity: 0.7,
+                transform: 'translateY(-50%)',
+                '&.Mui-focused, &.MuiFormLabel-filled': {
+                  top: 0,
+                  transform: 'translateY(-50%) scale(0.75)'
+                }
+              }
+            }}
             sx={{
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
                 fontSize: { xs: '0.9rem', sm: '1rem' }
-              },
-              '& .MuiInputLabel-root': {
-                fontSize: { xs: '0.85rem', sm: '0.875rem' }
               }
             }}
           />
