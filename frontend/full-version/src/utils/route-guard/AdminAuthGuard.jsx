@@ -9,9 +9,7 @@ import { useEffect, useState } from 'react';
 // @mui
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import Alert from '@mui/material/Alert';
-import Button from '@mui/material/Button';
-import Stack from '@mui/material/Stack';
+import CircularProgress from '@mui/material/CircularProgress';
 
 // @project
 import { supabase } from '@/utils/supabase/client';
@@ -52,30 +50,23 @@ export default function AdminAuthGuard({ children }) {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/admin/login');
+      // Redirect immediately without showing "Access Denied"
+      router.replace('/admin/login');
     }
   }, [user, loading, router]);
 
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <Typography>Loading...</Typography>
+        <CircularProgress />
+        <Typography sx={{ ml: 2 }}>Loading...</Typography>
       </Box>
     );
   }
 
+  // Don't render anything while redirecting
   if (!user) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <Stack spacing={2} sx={{ maxWidth: 400, textAlign: 'center' }}>
-          <Typography variant="h5">Access Denied</Typography>
-          <Alert severity="error">Only @everspeak.ai email addresses can access the admin dashboard.</Alert>
-          <Button variant="contained" onClick={() => router.push('/admin/login')}>
-            Go to Login
-          </Button>
-        </Stack>
-      </Box>
-    );
+    return null;
   }
 
   return children;
