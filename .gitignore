@@ -8,6 +8,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 .env
+.env.local
+.env.development
+.env.production
+.env.*.local
 # Test files
 speech-test.wav
 test_client.py
