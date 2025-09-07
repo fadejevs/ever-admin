@@ -26,6 +26,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3001
 4. Add these URLs to **Redirect URLs**:
    - `http://localhost:3001/auth/callback/success`
    - `http://localhost:3001/auth/callback/handle-tokens`
+   - `http://localhost:3001/admin/auth/callback`
    - `http://localhost:3001/password-recovery`
 
 ## How the Authentication Flow Works
@@ -42,7 +43,13 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3001
    - Success page handles authentication and redirects to dashboard
    - Uses implicit flow instead of PKCE for better compatibility
 
-3. **Error Handling**:
+3. **Admin Authentication**:
+   - Admin users with @everspeak.ai emails use the same callback URL
+   - Success page automatically detects admin users and redirects to `/dashboard`
+   - Regular users are redirected to `/dashboard/analytics`
+   - Admin magic links use the same whitelisted callback URL to avoid spam filters
+
+4. **Error Handling**:
    - All authentication errors are caught and displayed to user
    - Specific error messages for expired links, already used links, etc.
    - Rate limiting is handled gracefully

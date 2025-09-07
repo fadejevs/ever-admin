@@ -25,7 +25,16 @@ export default function AuthCallbackSuccess() {
           console.error('Auth success: Error in URL parameters:', error, errorDescription);
           setStatus('Authentication failed. Redirecting to login...');
           setTimeout(() => {
-            router.replace(`/login?error=auth_error&details=${encodeURIComponent(errorDescription || error)}`);
+            // Check if this might be an admin login attempt
+            const isAdminAttempt = window.location.search.includes('admin') || 
+                                 window.location.hash.includes('admin') ||
+                                 document.referrer.includes('/admin/');
+            
+            if (isAdminAttempt) {
+              router.replace(`/admin/login?error=auth_error&details=${encodeURIComponent(errorDescription || error)}`);
+            } else {
+              router.replace(`/login?error=auth_error&details=${encodeURIComponent(errorDescription || error)}`);
+            }
           }, 1000);
           return;
         }
@@ -38,7 +47,13 @@ export default function AuthCallbackSuccess() {
         if (initialSession) {
           console.log('Auth success: Initial session found');
           setStatus('Authentication successful! Redirecting...');
-          router.replace('/dashboard/analytics');
+          
+          // Check if this is an admin user
+          if (initialSession.user?.email?.endsWith('@everspeak.ai')) {
+            router.replace('/dashboard');
+          } else {
+            router.replace('/dashboard/analytics');
+          }
           return;
         }
 
@@ -57,19 +72,38 @@ export default function AuthCallbackSuccess() {
 
             // Small delay to ensure state is fully synced
             setTimeout(() => {
-              router.replace('/dashboard/analytics');
+              // Check if this is an admin user
+              if (session.user?.email?.endsWith('@everspeak.ai')) {
+                router.replace('/dashboard');
+              } else {
+                router.replace('/dashboard/analytics');
+              }
             }, 500);
           } else if (event === 'SIGNED_OUT') {
             console.log('Auth success: User signed out');
             setStatus('Authentication failed. Redirecting to login...');
             setTimeout(() => {
-              router.replace('/login?error=auth_signout');
+              // Check if this might be an admin login attempt
+              const isAdminAttempt = window.location.search.includes('admin') || 
+                                   window.location.hash.includes('admin') ||
+                                   document.referrer.includes('/admin/');
+              
+              if (isAdminAttempt) {
+                router.replace('/admin/login?error=auth_signout');
+              } else {
+                router.replace('/login?error=auth_signout');
+              }
             }, 1000);
           } else if (event === 'TOKEN_REFRESHED' && session) {
             console.log('Auth success: Token refreshed successfully');
             setStatus('Authentication successful! Redirecting...');
             setTimeout(() => {
-              router.replace('/dashboard/analytics');
+              // Check if this is an admin user
+              if (session.user?.email?.endsWith('@everspeak.ai')) {
+                router.replace('/dashboard');
+              } else {
+                router.replace('/dashboard/analytics');
+              }
             }, 500);
           }
         });
@@ -81,14 +115,32 @@ export default function AuthCallbackSuccess() {
           console.log('Auth success: Timeout reached');
           setStatus('Authentication timed out. Redirecting to login...');
           setTimeout(() => {
-            router.replace('/login?error=auth_timeout');
+            // Check if this might be an admin login attempt
+            const isAdminAttempt = window.location.search.includes('admin') || 
+                                 window.location.hash.includes('admin') ||
+                                 document.referrer.includes('/admin/');
+            
+            if (isAdminAttempt) {
+              router.replace('/admin/login?error=auth_timeout');
+            } else {
+              router.replace('/login?error=auth_timeout');
+            }
           }, 1000);
         }, 15000); // 15 second timeout
       } catch (error) {
         console.error('Auth success error:', error);
         setStatus('Authentication error. Redirecting to login...');
         setTimeout(() => {
-          router.replace('/login?error=auth_error');
+          // Check if this might be an admin login attempt
+          const isAdminAttempt = window.location.search.includes('admin') || 
+                               window.location.hash.includes('admin') ||
+                               document.referrer.includes('/admin/');
+          
+          if (isAdminAttempt) {
+            router.replace('/admin/login?error=auth_error');
+          } else {
+            router.replace('/login?error=auth_error');
+          }
         }, 1000);
       }
     };
