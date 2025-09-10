@@ -39,10 +39,16 @@ export default function AdminAuthLogin() {
     }
 
     try {
+      // Determine the correct callback URL based on the current domain
+      const isAdminDomain = window.location.hostname === 'admin.everspeak.ai';
+      const callbackUrl = isAdminDomain 
+        ? `${window.location.origin}/admin/auth/callback`
+        : `${window.location.origin}/auth/callback/success`;
+
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback/success`,
+          emailRedirectTo: callbackUrl,
           data: {
             admin_access: true,
             redirect_to: `${window.location.origin}/dashboard`
