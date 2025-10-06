@@ -146,17 +146,6 @@ export default function AdminLogin() {
           </Box>
         </Paper>
 
-        {/* Footer */}
-        <Box sx={{ textAlign: 'center', mt: 3 }}>
-          <Typography
-            variant="caption"
-            sx={{
-              fontSize: { xs: '0.75rem', sm: '0.8rem' }
-            }}
-          >
-            Admin Portal • Secure Access Only
-          </Typography>
-        </Box>
       </Container>
     </Box>
   );
