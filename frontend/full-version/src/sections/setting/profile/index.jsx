@@ -7,6 +7,7 @@ import ProfileLoginService from './ProfileLoginService';
 // import ProfilePreferredLanguage from './ProfilePreferredLanguage';
 import ProfileTimezone from './ProfileTimezone';
 import GeneralResource from '../general/GeneralResource';
+import SlackNotificationsCard from './SlackNotificationsCard';
 
 /***************************  SETTING - PROFILE  ***************************/
 
@@ -24,6 +25,9 @@ export default function ProfileSetting() {
       </Grid> */}
       <Grid size={12}>
         <ProfileTimezone />
+      </Grid>
+      <Grid size={12}>
+        <SlackNotificationsCard />
       </Grid>
       <Grid size={12}>
         <GeneralResource />

@@ -128,11 +128,13 @@ def create_app(config_class=Config):
         from .routes.main import main_bp
         from .routes.speech import speech_bp
         from .routes.finances import finances_bp
+        from .routes.notifications import notifications_bp
         # from .routes.firebase import firebase_bp # If you have it
 
         app.register_blueprint(main_bp)
         app.register_blueprint(speech_bp, url_prefix='/speech')
         app.register_blueprint(finances_bp, url_prefix='/api')
+        app.register_blueprint(notifications_bp, url_prefix='/api/notifications')
         # app.register_blueprint(firebase_bp, url_prefix='/firebase')
         logger.info("--- create_app --- Blueprints registered.")
     except Exception as e:

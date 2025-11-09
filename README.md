@@ -16,6 +16,15 @@ Create a "config.py" file inside the "app" folder with:
 AZURE_SPEECH_KEY=Azure_speech_key
 AZURE_REGION=Azure_region
 
+# Slack Notifications (optional)
+Slack notifications use an incoming webhook URL. Configure the following environment variables on the backend:
+
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
+# Optional: override the channel if your webhook allows multiple channels
+SLACK_DEFAULT_CHANNEL=#alerts
+
+With the variables in place, the admin dashboard Settings → General page exposes a Slack Notifications card for sending test messages.
+
 5. Run
 python main.py
 
