@@ -209,3 +209,113 @@ def get_benchmarks():
     except Exception as e:
         logger.error(f"Error getting benchmarks: {e}")
         return jsonify({'error': 'Failed to fetch benchmarks data'}), 500
+
+@finances_bp.route('/metrics/event-quality', methods=['GET'])
+def get_event_quality_assessments():
+    """Get event quality assessments"""
+    try:
+        # Get query parameters
+        limit = int(request.args.get('limit', 50))
+        since = request.args.get('since')  # ISO timestamp
+        
+        # TODO: Replace with actual database query
+        # For now, return sample data matching the expected structure
+        # In production, this should query the metrics/ingest endpoint data
+        # where type='event_quality'
+        
+        sample_assessments = [
+            {
+                'timestamp': (datetime.now() - timedelta(hours=2)).isoformat(),
+                'assessment': {
+                    'eventId': 'evt_' + ''.join(random.choices('0123456789abcdef', k=12)),
+                    'eventTitle': 'International Conference Day 1',
+                    'durationMinutes': 45.5,
+                    'metrics': {
+                        'totalChunks': 120,
+                        'totalTranslations': 115,
+                        'avgProcessingTime': 245,
+                        'avgTranslationTime': 180,
+                        'safetyBlocks': 2,
+                        'emptyDrops': 3,
+                        'connectionErrors': 1,
+                        'reconnects': 0
+                    },
+                    'scores': {
+                        'translationLatency': 85,
+                        'systemReliability': 95,
+                        'contentSafety': 100
+                    },
+                    'overallScore': 93
+                }
+            },
+            {
+                'timestamp': (datetime.now() - timedelta(hours=5)).isoformat(),
+                'assessment': {
+                    'eventId': 'evt_' + ''.join(random.choices('0123456789abcdef', k=12)),
+                    'eventTitle': 'Team Meeting - Q4 Planning',
+                    'durationMinutes': 30.0,
+                    'metrics': {
+                        'totalChunks': 85,
+                        'totalTranslations': 82,
+                        'avgProcessingTime': 320,
+                        'avgTranslationTime': 250,
+                        'safetyBlocks': 0,
+                        'emptyDrops': 1,
+                        'connectionErrors': 0,
+                        'reconnects': 1
+                    },
+                    'scores': {
+                        'translationLatency': 72,
+                        'systemReliability': 88,
+                        'contentSafety': 100
+                    },
+                    'overallScore': 87
+                }
+            },
+            {
+                'timestamp': (datetime.now() - timedelta(days=1)).isoformat(),
+                'assessment': {
+                    'eventId': 'evt_' + ''.join(random.choices('0123456789abcdef', k=12)),
+                    'eventTitle': 'Product Launch Webinar',
+                    'durationMinutes': 60.0,
+                    'metrics': {
+                        'totalChunks': 200,
+                        'totalTranslations': 195,
+                        'avgProcessingTime': 210,
+                        'avgTranslationTime': 165,
+                        'safetyBlocks': 1,
+                        'emptyDrops': 2,
+                        'connectionErrors': 0,
+                        'reconnects': 0
+                    },
+                    'scores': {
+                        'translationLatency': 90,
+                        'systemReliability': 98,
+                        'contentSafety': 100
+                    },
+                    'overallScore': 96
+                }
+            }
+        ]
+        
+        # Filter by 'since' if provided
+        if since:
+            since_dt = datetime.fromisoformat(since.replace('Z', '+00:00'))
+            sample_assessments = [
+                a for a in sample_assessments 
+                if datetime.fromisoformat(a['timestamp'].replace('Z', '+00:00')) >= since_dt
+            ]
+        
+        # Limit results
+        sample_assessments = sample_assessments[:limit]
+        
+        response_data = {
+            'count': len(sample_assessments),
+            'assessments': sample_assessments
+        }
+        
+        return jsonify(response_data), 200
+        
+    except Exception as e:
+        logger.error(f"Error getting event quality assessments: {e}")
+        return jsonify({'error': 'Failed to fetch event quality assessments'}), 500

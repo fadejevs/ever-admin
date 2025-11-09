@@ -50,6 +50,16 @@ export async function fetchUserPayments(params = {}) {
   }
 }
 
+export async function fetchEventQualityAssessments(params = {}) {
+  try {
+    const { data } = await client.get('/api/event-quality', { params });
+    return data;
+  } catch (error) {
+    console.error('fetchEventQualityAssessments error:', error?.response?.data || error?.message || error);
+    throw error;
+  }
+}
+
 // Helpers to normalize common shapes into chart-ready series
 export function toLineSeries(points = [], { id = 'series', label = 'Series', color } = {}) {
   return [{ id, label, data: points, color }];

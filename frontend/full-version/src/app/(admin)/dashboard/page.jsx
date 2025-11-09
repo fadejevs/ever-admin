@@ -18,6 +18,7 @@ import { handlerActiveItem, useGetMenuMaster } from '@/states/menu';
 import MetricsTab from '@/views/metrics/MetricsTab';
 import BenchmarksTab from '@/views/metrics/BenchmarksTab';
 import FinancesTab from '@/views/metrics/FinancesTab';
+import EventQualityTab from '@/views/metrics/EventQualityTab';
 
 /***************************  DASHBOARD  ***************************/
 
@@ -56,11 +57,13 @@ export default function Dashboard() {
           <Tab label="Metrics" value="metrics" />
           <Tab label="Benchmarks" value="benchmarks" />
           <Tab label="Finances" value="finances" />
+          <Tab label="Event Quality" value="event-quality" />
         </Tabs>
         <Box>
           {activeTab === 'metrics' && <MetricsTab />}
           {activeTab === 'benchmarks' && <BenchmarksTab />}
           {activeTab === 'finances' && <FinancesTab />}
+          {activeTab === 'event-quality' && <EventQualityTab />}
         </Box>
       </Stack>
     </Box>
