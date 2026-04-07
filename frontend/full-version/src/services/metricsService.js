@@ -1,5 +1,6 @@
 // @third-party
 import axios from 'axios';
+import { supabase } from '@/utils/supabase/client';
 
 // Separate base URL for metrics API so we don't interfere with app API
 // Use internal Next.js routes to avoid CORS and auth issues
@@ -9,6 +10,14 @@ const client = axios.create({
   baseURL: METRICS_BASE_URL,
   timeout: 15000
 });
+
+async function getAdminAuthHeaders() {
+  const {
+    data: { session }
+  } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 export async function fetchMetrics(params = {}) {
   try {
@@ -67,4 +76,28 @@ export function toLineSeries(points = [], { id = 'series', label = 'Series', col
 
 export function toBarSeries(values = [], { id = 'series', label = 'Series', color } = {}) {
   return [{ id, label, data: values, color }];
+}
+
+export async function fetchRoiSummary(params = {}) {
+  const headers = await getAdminAuthHeaders();
+  const { data } = await client.get('/api/roi/summary', { params, headers });
+  return data;
+}
+
+export async function fetchRoiCustomers(params = {}) {
+  const headers = await getAdminAuthHeaders();
+  const { data } = await client.get('/api/roi/customers', { params, headers });
+  return data;
+}
+
+export async function fetchRoiEvents(params = {}) {
+  const headers = await getAdminAuthHeaders();
+  const { data } = await client.get('/api/roi/events', { params, headers });
+  return data;
+}
+
+export async function fetchRoiReconciliation(params = {}) {
+  const headers = await getAdminAuthHeaders();
+  const { data } = await client.get('/api/roi/reconciliation', { params, headers });
+  return data;
 }

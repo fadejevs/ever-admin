@@ -19,6 +19,7 @@ import PersonIcon from '@mui/icons-material/Person';
 
 // @project
 import { supabase } from '@/utils/supabase/client';
+import LogoSection from '@/components/logo';
 
 export default function AdminHeader() {
   const router = useRouter();
@@ -78,16 +79,9 @@ export default function AdminHeader() {
       }}
     >
       <Toolbar sx={{ minHeight: 64, px: { xs: 2, sm: 3 } }}>
-        <Typography
-          variant="h6"
-          sx={{
-            flexGrow: 1,
-            color: 'text.primary',
-            fontWeight: 600
-          }}
-        >
-          Everspeak Admin
-        </Typography>
+        <Box sx={{ flexGrow: 1 }}>
+          <LogoSection to="/dashboard" />
+        </Box>
 
         {user && (
           <Stack direction="row" spacing={2} alignItems="center">
