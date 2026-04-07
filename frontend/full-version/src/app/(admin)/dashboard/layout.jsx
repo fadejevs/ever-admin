@@ -1,3 +1,8 @@
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1
+};
+
 export const metadata = {
   title: 'Dashboard — Create & Manage Your Next Multilingual Event',
   description:
@@ -5,7 +10,6 @@ export const metadata = {
   alternates: {
     canonical: 'https://app.everspeak.ai/'
   },
-  viewport: 'width=device-width, initial-scale=1',
   // No need to set icons here if you want to inherit the root favicon
   openGraph: {
     type: 'website',

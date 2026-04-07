@@ -20,11 +20,15 @@ export default function LogoSection({ isIcon, sx, to }) {
   const theme = useTheme();
 
   return (
-    <NextLink href={!to ? APP_DEFAULT_PATH : to} passHref legacyBehavior>
-      <ButtonBase disableRipple sx={{ ...sx, '&:focus-visible': generateFocusStyle(theme.palette.primary.main) }} aria-label="logo">
-        {isIcon ? <LogoIcon /> : <LogoMain />}
-      </ButtonBase>
-    </NextLink>
+    <ButtonBase
+      component={NextLink}
+      href={!to ? APP_DEFAULT_PATH : to}
+      disableRipple
+      sx={{ ...sx, '&:focus-visible': generateFocusStyle(theme.palette.primary.main) }}
+      aria-label="logo"
+    >
+      {isIcon ? <LogoIcon /> : <LogoMain />}
+    </ButtonBase>
   );
 }
 
