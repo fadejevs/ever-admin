@@ -51,7 +51,7 @@ function parseJsonObject(value, fallback) {
       return fallback;
     }
     return parsed;
-  } catch (_error) {
+  } catch {
     return fallback;
   }
 }
@@ -61,7 +61,7 @@ function parseJsonArray(value, fallback = []) {
   try {
     const parsed = JSON.parse(value);
     return Array.isArray(parsed) ? parsed : fallback;
-  } catch (_error) {
+  } catch {
     return fallback;
   }
 }
