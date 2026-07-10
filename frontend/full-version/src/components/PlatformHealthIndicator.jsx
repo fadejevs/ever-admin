@@ -95,20 +95,7 @@ export default function PlatformHealthIndicator({ refreshSec = 20 }) {
   if (health?.offline) {
     return (
       <Alert severity="warning" sx={{ borderRadius: 2 }}>
-        Pipeline health unavailable — {health.message || health.error || 'Main app not reachable'}.
-        {health.notDeployed ? (
-          <>
-            {' '}
-            Deploy the latest <strong>app.everspeak.ai</strong> (includes <code>/api/health/*</code>) and set{' '}
-            <code>METRICS_API_KEY</code> on both Vercel projects.
-          </>
-        ) : (
-          <>
-            {' '}
-            For local dev, keep <strong>localhost:3000</strong> running and set{' '}
-            <code>NEXT_PUBLIC_METRICS_API=http://localhost:3000</code> on admin.
-          </>
-        )}
+        Pipeline health unavailable
       </Alert>
     );
   }
@@ -116,7 +103,7 @@ export default function PlatformHealthIndicator({ refreshSec = 20 }) {
   if (error && !health?.offline) {
     return (
       <Alert severity="warning" sx={{ borderRadius: 2 }}>
-        Pipeline health unavailable — {error}.
+        Pipeline health unavailable
       </Alert>
     );
   }
@@ -179,11 +166,6 @@ export default function PlatformHealthIndicator({ refreshSec = 20 }) {
         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
           Updated {formatUpdatedAt(health?.updatedAt)} · refreshes every {refreshSec}s
         </Typography>
-        {error ? (
-          <Typography variant="caption" color="warning.main">
-            Last refresh issue: {error}
-          </Typography>
-        ) : null}
       </Stack>
     </Alert>
   );
