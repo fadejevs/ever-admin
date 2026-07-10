@@ -29,6 +29,26 @@ export async function fetchMetrics(params = {}) {
   }
 }
 
+export async function fetchHealthSummary(params = {}) {
+  try {
+    const { data } = await client.get('/api/health-summary', { params });
+    return data;
+  } catch (error) {
+    console.error('fetchHealthSummary error:', error?.response?.data || error?.message || error);
+    throw error;
+  }
+}
+
+export async function fetchServiceHealth(params = {}) {
+  try {
+    const { data } = await client.get('/api/services', { params });
+    return data;
+  } catch (error) {
+    console.error('fetchServiceHealth error:', error?.response?.data || error?.message || error);
+    throw error;
+  }
+}
+
 export async function fetchBenchmarks(params = {}) {
   try {
     const { data } = await client.get('/api/benchmarks', { params });

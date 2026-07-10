@@ -1,15 +1,13 @@
 import PropTypes from 'prop-types';
-// @next
-import { redirect } from 'next/navigation';
+import DashboardAnalytics from '@/views/admin/dashboard/analytics';
 
-export default async function Dashboard({ params }) {
-  await params;
-  redirect('/dashboard');
+export default async function AnalyticsTabPage({ params }) {
+  const { tab } = await params;
+  return <DashboardAnalytics tab={tab || 'metrics'} />;
 }
 
-// Return a list of `params` to populate the [slug] dynamic segment
 export async function generateStaticParams() {
-  return [];
+  return [{ tab: 'metrics' }, { tab: 'benchmarks' }, { tab: 'finances' }];
 }
 
-Dashboard.propTypes = { params: PropTypes.object };
+AnalyticsTabPage.propTypes = { params: PropTypes.object };

@@ -35,7 +35,7 @@ import WarningIcon from '@mui/icons-material/Warning';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar } from 'recharts';
-import { fetchMetrics } from '@/services/metricsService';
+import { fetchHealthSummary, fetchMetrics, fetchServiceHealth } from '@/services/metricsService';
 
 const StatCard = ({ title, value, subtitle, critical, trend, color = 'primary' }) => {
   const getStatusColor = () => {
@@ -219,7 +219,7 @@ const MetricsTab = () => {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [autoRefreshSec] = useState(20); // Real-time refresh every 20 seconds
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [warning, setWarning] = useState(null);
   const [metricsData, setMetricsData] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
   const [selectedService, setSelectedService] = useState(null);
@@ -350,120 +350,104 @@ const MetricsTab = () => {
 
   useEffect(() => {
     let mounted = true;
+
+    const mapServiceRow = (svc) => ({
+      name: svc.name,
+      subtitle: `${svc.requests || 0} requests · last ${svc.windowMinutes || 15}m`,
+      status: svc.status === 'unknown' ? 'degraded' : svc.status,
+      errorRate: Number(svc.errorRatePct || 0).toFixed(1),
+      latency: {
+        p50: svc.avgLatencyMs || 0,
+        p90: Math.round((svc.p95LatencyMs || svc.avgLatencyMs || 0) * 1.1),
+        p99: Math.round((svc.p95LatencyMs || svc.avgLatencyMs || 0) * 1.25)
+      },
+      calls: svc.requests || 0,
+      cost: 0,
+      usageShare: 0
+    });
+
+    const buildFromHealth = (summary, servicePayload, metricsPayload) => {
+      const services = (servicePayload?.services || []).map(mapServiceRow);
+      const totalCalls = services.reduce((sum, s) => sum + s.calls, 0);
+      services.forEach((s) => {
+        s.usageShare = totalCalls > 0 ? Math.round((s.calls / totalCalls) * 100) : 0;
+      });
+
+      const latencyTrends =
+        metricsPayload?.timestamps?.map((timestamp, index) => ({
+          time: new Date(timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          translation: metricsPayload.p95?.[index] || 0,
+          asr: metricsPayload.p95?.[index] || 0,
+          tts: metricsPayload.p95?.[index] || 0,
+          auth: metricsPayload.p95?.[index] || 0
+        })) || [];
+
+      const errorBreakdown = services
+        .filter((s) => parseFloat(s.errorRate) > 0)
+        .map((s, index) => ({
+          name: s.name,
+          value: Math.round(parseFloat(s.errorRate) * (s.calls || 1)),
+          color: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'][index % 5]
+        }));
+
+      const usageTrends =
+        metricsPayload?.timestamps?.map((timestamp, index) => ({
+          time: new Date(timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          calls: metricsPayload.throughput?.[index] || 0,
+          sessions: Math.floor((metricsPayload.throughput?.[index] || 0) * 0.3),
+          interpretationHours: ((metricsPayload.throughput?.[index] || 0) * 0.1).toFixed(1)
+        })) || [];
+
+      return {
+        services: services.length ? services : [],
+        latencyTrends,
+        errorBreakdown,
+        usageTrends,
+        costTrends: [],
+        systemHealth: {
+          status: summary?.status || 'unknown',
+          slaUptime: summary?.uptimePct != null ? summary.uptimePct.toFixed(2) : '100.00',
+          totalIncidents: summary?.failures ?? summary?.incidents ?? 0,
+          avgResponseTime: summary?.avgLatencyMs ?? 0,
+          globalErrorRate: summary?.errorRatePct != null ? Number(summary.errorRatePct).toFixed(1) : '0.0',
+          slackAlertsEnabled: !!summary?.slackAlertsEnabled
+        }
+      };
+    };
+
     const fetchData = async () => {
       try {
         setLoading(true);
-        setError(null);
-        
-        // Try to fetch real data from the API first
-        try {
-          const realData = await fetchMetrics();
-          if (realData && (realData.services || realData.timestamps)) {
-            if (!mounted) return;
-            
-            // Transform API data to dashboard format if needed
-            let processedData = realData;
-            if (realData.timestamps && !realData.services) {
-              // Convert API format to dashboard format
-              processedData = {
-                services: [
-                  {
-                    name: 'Translation API',
-                    subtitle: 'Core translation service',
-                    status: 'healthy',
-                    errorRate: realData.errorRate ? (realData.errorRate[realData.errorRate.length - 1] || 0).toFixed(1) : '0.0',
-                    latency: {
-                      p50: Math.floor(Math.random() * 200 + 50),
-                      p90: Math.floor(Math.random() * 400 + 150),
-                      p99: Math.floor(Math.random() * 800 + 300)
-                    },
-                    calls: realData.throughput ? realData.throughput.reduce((sum, val) => sum + val, 0) : 0,
-                    cost: 25.50,
-                    usageShare: 35
-                  },
-                  {
-                    name: 'ASR Service',
-                    subtitle: 'Automatic Speech Recognition',
-                    status: 'healthy',
-                    errorRate: realData.errorRate ? (realData.errorRate[realData.errorRate.length - 1] || 0).toFixed(1) : '0.0',
-                    latency: {
-                      p50: Math.floor(Math.random() * 300 + 100),
-                      p90: Math.floor(Math.random() * 600 + 200),
-                      p99: Math.floor(Math.random() * 1200 + 400)
-                    },
-                    calls: realData.throughput ? Math.floor(realData.throughput.reduce((sum, val) => sum + val, 0) * 0.8) : 0,
-                    cost: 45.20,
-                    usageShare: 40
-                  },
-                  {
-                    name: 'TTS Service',
-                    subtitle: 'Text-to-Speech engine',
-                    status: 'healthy',
-                    errorRate: realData.errorRate ? (realData.errorRate[realData.errorRate.length - 1] || 0).toFixed(1) : '0.0',
-                    latency: {
-                      p50: Math.floor(Math.random() * 250 + 75),
-                      p90: Math.floor(Math.random() * 500 + 175),
-                      p99: Math.floor(Math.random() * 1000 + 350)
-                    },
-                    calls: realData.throughput ? Math.floor(realData.throughput.reduce((sum, val) => sum + val, 0) * 0.6) : 0,
-                    cost: 38.75,
-                    usageShare: 25
-                  }
-                ],
-                latencyTrends: realData.timestamps ? realData.timestamps.map((timestamp, index) => ({
-                  time: new Date(timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-                  translation: realData.p95 ? (realData.p95[index] || 0) + Math.random() * 50 : Math.random() * 200 + 50,
-                  asr: realData.p95 ? (realData.p95[index] || 0) + Math.random() * 100 + 100 : Math.random() * 300 + 100,
-                  tts: realData.p95 ? (realData.p95[index] || 0) + Math.random() * 75 + 75 : Math.random() * 250 + 75
-                })) : [],
-                errorBreakdown: [
-                  { name: 'Network/Timeouts', value: realData.errorRate ? Math.floor(realData.errorRate.reduce((sum, val) => sum + val, 0) * 0.4) : 0 },
-                  { name: 'Translation Errors', value: realData.errorRate ? Math.floor(realData.errorRate.reduce((sum, val) => sum + val, 0) * 0.3) : 0 },
-                  { name: 'ASR Errors', value: realData.errorRate ? Math.floor(realData.errorRate.reduce((sum, val) => sum + val, 0) * 0.2) : 0 },
-                  { name: 'TTS Errors', value: realData.errorRate ? Math.floor(realData.errorRate.reduce((sum, val) => sum + val, 0) * 0.1) : 0 }
-                ],
-                usageTrends: realData.timestamps ? realData.timestamps.map((timestamp, index) => ({
-                  time: new Date(timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-                  calls: realData.throughput ? (realData.throughput[index] || 0) : 0,
-                  sessions: Math.floor((realData.throughput ? (realData.throughput[index] || 0) : 0) * 0.3),
-                  hours: Math.floor((realData.throughput ? (realData.throughput[index] || 0) : 0) * 0.1)
-                })) : [],
-                costTrends: realData.timestamps ? realData.timestamps.map((timestamp, index) => ({
-                  time: new Date(timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-                  translation: (realData.throughput ? (realData.throughput[index] || 0) : 0) * 0.02,
-                  asr: (realData.throughput ? (realData.throughput[index] || 0) : 0) * 0.03,
-                  tts: (realData.throughput ? (realData.throughput[index] || 0) : 0) * 0.025,
-                  auth: (realData.throughput ? (realData.throughput[index] || 0) : 0) * 0.01
-                })) : [],
-                systemHealth: {
-                  slaUptime: '99.9',
-                  totalIncidents: 0,
-                  avgResponseTime: realData.p95 ? Math.floor(realData.p95.reduce((sum, val) => sum + val, 0) / realData.p95.length) : 150,
-                  globalErrorRate: realData.errorRate ? (realData.errorRate.reduce((sum, val) => sum + val, 0) / realData.errorRate.length).toFixed(1) : '0.0'
-                }
-              };
-            }
-            
-            setMetricsData(processedData);
-            console.log('Using real metrics data from API');
-            return;
-          }
-        } catch (apiError) {
-          console.warn('API fetch failed, using mock data:', apiError);
-        }
-        
-        // Fallback to mock data if API fails or returns empty data
-        const data = generateMockData();
+        setWarning(null);
+
+        const [summaryResult, servicesResult, metricsResult] = await Promise.allSettled([
+          fetchHealthSummary(),
+          fetchServiceHealth(),
+          fetchMetrics({ interval: '1m' })
+        ]);
+
         if (!mounted) return;
-        setMetricsData(data);
-        setError('Using sample data - API not available');
+
+        const summary = summaryResult.status === 'fulfilled' ? summaryResult.value : null;
+        const servicePayload = servicesResult.status === 'fulfilled' ? servicesResult.value : null;
+        const metricsPayload = metricsResult.status === 'fulfilled' ? metricsResult.value : null;
+
+        if (summary) {
+          const processed = buildFromHealth(summary, servicePayload, metricsPayload);
+          if (processed.services.length === 0 && summary.status === 'unknown') {
+            setWarning('No recent API metrics yet — health will populate as live traffic is ingested.');
+          }
+          setMetricsData(processed);
+          return;
+        }
+
+        setWarning('Live health API unavailable — showing sample layout only.');
+        setMetricsData(generateMockData());
       } catch (e) {
         if (!mounted) return;
         console.error('fetchMetrics error:', e);
-        setError(e?.message || 'Failed to load metrics data');
-        // Still try to show mock data
-        const data = generateMockData();
-        setMetricsData(data);
+        setWarning(e?.message || 'Failed to load metrics data');
+        setMetricsData(generateMockData());
       } finally {
         if (mounted) setLoading(false);
       }
@@ -492,12 +476,12 @@ const MetricsTab = () => {
     );
   }
 
-  if (error) {
+  if (!metricsData) {
     return (
       <Box sx={{ p: { xs: 1.5, sm: 3 } }}>
         <Alert severity="error" sx={{ mb: 2 }}>
           <Typography variant="body2" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-            {error}
+            Failed to load system health metrics.
           </Typography>
         </Alert>
       </Box>
@@ -535,6 +519,23 @@ const MetricsTab = () => {
           </Tooltip>
         </Box>
       </Box>
+
+      {/* Warning / data source */}
+      {warning && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          <Typography variant="body2" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
+            {warning}
+          </Typography>
+        </Alert>
+      )}
+
+      {systemHealth?.slackAlertsEnabled && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          <Typography variant="body2" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
+            Real-time Slack alerts are enabled on the main app when error rates spike (via metrics ingest).
+          </Typography>
+        </Alert>
+      )}
 
       {/* Critical Alerts */}
       {criticalServices.length > 0 && (
