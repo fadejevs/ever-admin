@@ -55,8 +55,8 @@ export default function AdminLogin() {
            linear-gradient(180deg, #f8f9ff 0%, #ffffff 45%, #fafbff 100%)`
       }}
     >
-      <Container maxWidth="sm">
-        <Stack spacing={3} alignItems="center">
+      <Container maxWidth="xs" sx={{ maxWidth: 400 }}>
+        <Stack spacing={3} alignItems="center" sx={{ width: '100%' }}>
           <LogoSection to="/admin/login" />
 
           <Box sx={{ textAlign: 'center', maxWidth: 420 }}>

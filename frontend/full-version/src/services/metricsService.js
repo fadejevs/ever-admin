@@ -47,18 +47,34 @@ export async function fetchMetrics(params = {}) {
   }
 }
 
-export async function fetchHealthSummary(params = {}) {
-  try {
-    const { data } = await client.get('/api/health-summary', { params });
-    return data;
-  } catch (error) {
-    if (isOfflineError(error)) {
-      return offlineHealthPayload(
-        error?.response?.data?.error || 'Main app unreachable — start it on localhost:3000 (NEXT_PUBLIC_METRICS_API).'
-      );
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function fetchHealthSummary(params = {}, options = {}) {
+  const retries = options.retries ?? 1;
+  const retryDelayMs = options.retryDelayMs ?? 1200;
+  let last;
+
+  for (let attempt = 0; attempt < retries; attempt += 1) {
+    try {
+      const { data } = await client.get('/api/health-summary', { params });
+      last = data;
+      if (!data?.offline || attempt === retries - 1) return data;
+    } catch (error) {
+      if (attempt === retries - 1) {
+        if (isOfflineError(error)) {
+          return offlineHealthPayload(
+            error?.response?.data?.error || 'Main app unreachable — start it on localhost:3000 (NEXT_PUBLIC_METRICS_API).'
+          );
+        }
+        throw error;
+      }
     }
-    throw error;
+    await sleep(retryDelayMs);
   }
+
+  return last;
 }
 
 export async function fetchServiceHealth(params = {}) {

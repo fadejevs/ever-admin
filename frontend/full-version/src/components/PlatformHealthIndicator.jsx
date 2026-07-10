@@ -9,7 +9,8 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { fetchHealthSummary } from '@/services/metricsService';
 
 const DEGRADED_ERROR_RATE_PCT = 5;
-const DEGRADED_P95_MS = 3000;
+const DEGRADED_P95_MS = 5000;
+const LATENCY_TARGET_LABEL = '5 s';
 
 const STATUS_META = {
   healthy: { label: 'Healthy', color: 'success', Icon: CheckCircleOutlineIcon },
@@ -51,7 +52,7 @@ function describeStatus(health) {
     issues.push(`${errorRate}% of requests failed`);
   }
   if (p95 >= DEGRADED_P95_MS) {
-    issues.push(`responses are slow (95% finish within ${formatLatency(p95)}, target under 3 s)`);
+    issues.push(`responses are slow (95% finish within ${formatLatency(p95)}, target under ${LATENCY_TARGET_LABEL})`);
   }
 
   if (status === 'critical') {
@@ -68,7 +69,7 @@ export default function PlatformHealthIndicator({ refreshSec = 20 }) {
   const load = useCallback(async () => {
     try {
       setError('');
-      const data = await fetchHealthSummary();
+      const data = await fetchHealthSummary({}, { retries: 4, retryDelayMs: 1200 });
       setHealth(data);
     } catch (e) {
       setError(e?.response?.data?.error || e?.message || 'Failed to load platform health');
@@ -83,10 +84,10 @@ export default function PlatformHealthIndicator({ refreshSec = 20 }) {
     return () => clearInterval(timer);
   }, [load, refreshSec]);
 
-  if (loading && !health) {
+  if (loading || !health) {
     return (
       <Alert severity="info" icon={<CircularProgress size={18} />} sx={{ borderRadius: 2 }}>
-        Loading platform health…
+        Loading pipeline health…
       </Alert>
     );
   }
@@ -100,10 +101,10 @@ export default function PlatformHealthIndicator({ refreshSec = 20 }) {
     );
   }
 
-  if (error && !health) {
+  if (error && !health?.offline) {
     return (
       <Alert severity="warning" sx={{ borderRadius: 2 }}>
-        Platform health unavailable — {error}. Slack alerts still fire from live traffic via metrics ingest when configured.
+        Pipeline health unavailable — {error}.
       </Alert>
     );
   }
@@ -126,9 +127,6 @@ export default function PlatformHealthIndicator({ refreshSec = 20 }) {
           </Typography>
           <Chip size="small" label="Translation · ASR · TTS" variant="outlined" />
           <Chip size="small" label={meta.label} color={meta.color} variant={status === 'unknown' ? 'outlined' : 'filled'} />
-          {health?.slackAlertsEnabled ? (
-            <Chip size="small" label="Slack alerts on" variant="outlined" color="info" />
-          ) : null}
         </Stack>
         <Typography variant="body2">{describeStatus(health)}</Typography>
         <Box
@@ -163,7 +161,7 @@ export default function PlatformHealthIndicator({ refreshSec = 20 }) {
             sx={{ color: (health?.p95LatencyMs ?? 0) >= DEGRADED_P95_MS ? 'warning.dark' : 'text.primary' }}
           >
             {formatLatency(health?.p95LatencyMs)}
-            {(health?.p95LatencyMs ?? 0) >= DEGRADED_P95_MS ? ' (above 3 s target)' : ''}
+            {(health?.p95LatencyMs ?? 0) >= DEGRADED_P95_MS ? ` (above ${LATENCY_TARGET_LABEL} target)` : ''}
           </Typography>
         </Box>
         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
