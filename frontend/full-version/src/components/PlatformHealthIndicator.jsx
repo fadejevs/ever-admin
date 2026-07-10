@@ -95,8 +95,20 @@ export default function PlatformHealthIndicator({ refreshSec = 20 }) {
   if (health?.offline) {
     return (
       <Alert severity="warning" sx={{ borderRadius: 2 }}>
-        Platform health unavailable — {health.message || 'Main app not reachable'}. Keep <strong>localhost:3000</strong> running
-        (or set <code>NEXT_PUBLIC_METRICS_API</code> to prod).
+        Pipeline health unavailable — {health.message || health.error || 'Main app not reachable'}.
+        {health.notDeployed ? (
+          <>
+            {' '}
+            Deploy the latest <strong>app.everspeak.ai</strong> (includes <code>/api/health/*</code>) and set{' '}
+            <code>METRICS_API_KEY</code> on both Vercel projects.
+          </>
+        ) : (
+          <>
+            {' '}
+            For local dev, keep <strong>localhost:3000</strong> running and set{' '}
+            <code>NEXT_PUBLIC_METRICS_API=http://localhost:3000</code> on admin.
+          </>
+        )}
       </Alert>
     );
   }

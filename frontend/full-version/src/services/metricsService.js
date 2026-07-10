@@ -22,6 +22,7 @@ function offlineHealthPayload(message) {
     offline: true,
     status: 'unknown',
     message,
+    error: message,
     services: [],
     errorRatePct: 0,
     p95LatencyMs: 0,
@@ -60,12 +61,16 @@ export async function fetchHealthSummary(params = {}, options = {}) {
     try {
       const { data } = await client.get('/api/health-summary', { params });
       last = data;
-      if (!data?.offline || attempt === retries - 1) return data;
+      if (data?.offline) return data;
+      if (attempt === retries - 1) return data;
     } catch (error) {
       if (attempt === retries - 1) {
         if (isOfflineError(error)) {
+          const body = error?.response?.data || {};
           return offlineHealthPayload(
-            error?.response?.data?.error || 'Main app unreachable — start it on localhost:3000 (NEXT_PUBLIC_METRICS_API).'
+            body.message ||
+              body.error ||
+              'Main app unreachable — set NEXT_PUBLIC_METRICS_API and METRICS_API_KEY on admin Vercel.'
           );
         }
         throw error;
