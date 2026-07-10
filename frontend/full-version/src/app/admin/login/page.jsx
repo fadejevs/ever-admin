@@ -1,23 +1,35 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Box, Container, Paper, Typography, Alert, Button, Divider, useTheme, useMediaQuery } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import {
+  Alert,
+  Box,
+  Button,
+  Container,
+  Divider,
+  Paper,
+  Stack,
+  Typography
+} from '@mui/material';
 import AdminAuthLogin from '@/sections/auth/AdminAuthLogin';
+import LogoSection from '@/components/logo';
 import { supabase } from '@/utils/supabase/client';
+import { isAdminEmail } from '@/utils/adminAuth';
 
 export default function AdminLogin() {
   const router = useRouter();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const searchParams = useSearchParams();
   const [existingSession, setExistingSession] = useState(null);
+  const redirectPath = searchParams.get('redirect') || '/dashboard';
+  const urlError = searchParams.get('error');
 
   useEffect(() => {
     const checkExistingSession = async () => {
       const {
         data: { session }
       } = await supabase.auth.getSession();
-      if (session?.user?.email?.endsWith('@everspeak.ai')) {
+      if (session?.user && isAdminEmail(session.user.email)) {
         setExistingSession(session.user);
       }
     };
@@ -25,7 +37,7 @@ export default function AdminLogin() {
   }, []);
 
   const handleUseExistingSession = () => {
-    router.push('/dashboard');
+    router.push(redirectPath.startsWith('/') ? redirectPath : '/dashboard');
   };
 
   return (
@@ -35,117 +47,67 @@ export default function AdminLogin() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        p: { xs: 2, sm: 3 }
+        px: 2,
+        py: { xs: 4, sm: 6 },
+        background: (theme) =>
+          `radial-gradient(1200px 600px at 10% -10%, ${theme.palette.primary.main}18, transparent 60%),
+           radial-gradient(900px 500px at 100% 0%, ${theme.palette.secondary.main}14, transparent 55%),
+           linear-gradient(180deg, #f8f9ff 0%, #ffffff 45%, #fafbff 100%)`
       }}
     >
-      <Container
-        maxWidth="sm"
-        sx={{
-          width: '100%',
-          maxWidth: { xs: '100%', sm: 480 }
-        }}
-      >
-        {/* Header */}
-        <Box sx={{ textAlign: 'center', mb: { xs: 3, sm: 4 } }}>
-          <Typography
-            variant={isMobile ? 'h4' : 'h3'}
-            sx={{
-              mb: 1,
-              fontWeight: 700
-            }}
-          >
-            Admin Dashboard
-          </Typography>
-          <Typography
-            variant="body1"
-            sx={{
-              fontSize: { xs: '0.9rem', sm: '1rem' }
-            }}
-          >
-            Secure access for @everspeak.ai team members
-          </Typography>
-        </Box>
+      <Container maxWidth="sm">
+        <Stack spacing={3} alignItems="center">
+          <LogoSection to="/admin/login" />
 
-        {/* Main Content */}
-        <Paper
-          elevation={24}
-          sx={{
-            p: { xs: 3, sm: 4 },
-            borderRadius: 3,
-            overflow: 'hidden' // Prevent content from popping out
-          }}
-        >
-          {/* Info Alert */}
-          <Alert
-            severity="info"
-            sx={{
-              mb: 3,
-              borderRadius: 2,
-              fontSize: { xs: '0.8rem', sm: '0.875rem' }
-            }}
-          >
-            <Typography variant="body2">
-              <strong>Restricted Access:</strong> Only @everspeak.ai email addresses can access the admin dashboard.
+          <Box sx={{ textAlign: 'center', maxWidth: 420 }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: -0.5, mb: 0.75 }}>
+              Admin dashboard
             </Typography>
-          </Alert>
-
-          {/* Existing Session */}
-          {existingSession && (
-            <>
-              <Paper
-                sx={{
-                  p: { xs: 2.5, sm: 3 },
-                  mb: 3,
-                  bgcolor: 'success.light',
-                  color: 'success.contrastText',
-                  borderRadius: 2,
-                  border: '1px solid',
-                  borderColor: 'success.main'
-                }}
-              >
-                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                  ✅ Already Authenticated
-                </Typography>
-                <Typography variant="body2" sx={{ mb: 2, opacity: 0.9 }}>
-                  You're logged in as: <strong>{existingSession.email}</strong>
-                </Typography>
-                <Button
-                  variant="contained"
-                  onClick={handleUseExistingSession}
-                  sx={{
-                    bgcolor: 'success.dark',
-                    '&:hover': { bgcolor: 'success.main' },
-                    borderRadius: 2,
-                    px: 3,
-                    py: 1
-                  }}
-                  fullWidth={isMobile}
-                >
-                  Continue to Dashboard
-                </Button>
-              </Paper>
-
-              <Divider sx={{ my: 3 }}>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: 'text.secondary',
-                    px: 2,
-                    bgcolor: 'background.paper'
-                  }}
-                >
-                  OR
-                </Typography>
-              </Divider>
-            </>
-          )}
-
-          {/* Login Form */}
-          <Box sx={{ overflow: 'hidden' }}>
-            <AdminAuthLogin />
+            <Typography variant="body1" color="text.secondary">
+              Internal ops for the Everspeak team
+            </Typography>
           </Box>
-        </Paper>
 
+          <Paper
+            elevation={0}
+            sx={{
+              width: '100%',
+              p: { xs: 2.5, sm: 3.5 },
+              borderRadius: 3,
+              border: '1px solid',
+              borderColor: 'divider',
+              boxShadow: '0 20px 60px rgba(15, 23, 42, 0.08)'
+            }}
+          >
+            {urlError ? (
+              <Alert severity="warning" sx={{ mb: 2.5, borderRadius: 2 }}>
+                Sign-in did not complete. Request a fresh magic link below.
+              </Alert>
+            ) : null}
+
+            {existingSession ? (
+              <Stack spacing={2.5} sx={{ mb: 3 }}>
+                <Alert severity="success" sx={{ borderRadius: 2 }}>
+                  Signed in as <strong>{existingSession.email}</strong>
+                </Alert>
+                <Button variant="contained" size="large" onClick={handleUseExistingSession} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}>
+                  Continue to dashboard
+                </Button>
+                <Divider>
+                  <Typography variant="caption" color="text.secondary">
+                    or use another account
+                  </Typography>
+                </Divider>
+              </Stack>
+            ) : null}
+
+            <AdminAuthLogin />
+
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2.5, textAlign: 'center' }}>
+              Restricted to <strong>@everspeak.ai</strong> accounts. Session enforced on dashboard and API routes.
+            </Typography>
+          </Paper>
+        </Stack>
       </Container>
     </Box>
   );

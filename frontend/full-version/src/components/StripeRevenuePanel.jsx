@@ -16,7 +16,9 @@ import {
   TableRow,
   Typography
 } from '@mui/material';
-import PaymentsRoundedIcon from '@mui/icons-material/PaymentsRounded';
+import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
+import ExpandableTableSection from '@/components/ExpandableTableSection';
+import StripeMark from '@/components/icons/StripeMark';
 import { fetchStripeRevenue } from '@/services/stripeRevenueService';
 
 function formatMoney(cents, currency = 'EUR') {
@@ -51,10 +53,24 @@ function formatWhen(iso) {
   }
 }
 
+function StatBlock({ label, value, emphasis = false }) {
+  return (
+    <Box sx={{ minWidth: 100 }}>
+      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
+        {label}
+      </Typography>
+      <Typography variant={emphasis ? 'h6' : 'body1'} sx={{ fontWeight: emphasis ? 800 : 600, lineHeight: 1.3 }}>
+        {value}
+      </Typography>
+    </Box>
+  );
+}
+
 export default function StripeRevenuePanel({ refreshSec = 60 }) {
   const [payload, setPayload] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [tableExpanded, setTableExpanded] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -87,74 +103,104 @@ export default function StripeRevenuePanel({ refreshSec = 60 }) {
     }
   }, [payload?.updatedAt]);
 
+  const transactions = payload?.transactions || [];
+
   return (
-    <Paper sx={{ p: 2, borderRadius: 2 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={1} sx={{ mb: 2 }}>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <PaymentsRoundedIcon sx={{ color: 'success.main', fontSize: 20 }} />
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-              Stripe revenue
-            </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              From webhook ledger · {periodLabel}
-            </Typography>
-          </Box>
-        </Stack>
-        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
-          <Chip size="small" label="billing_transactions" variant="outlined" />
-          <Link href={stripeBase} target="_blank" rel="noopener noreferrer" variant="body2" underline="hover">
-            Open Stripe →
+    <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
+      <Box sx={{ p: 2 }}>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ md: 'flex-start' }}>
+          <Stack direction="row" spacing={1.5} alignItems="flex-start">
+            <StripeMark size={36} />
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
+                Stripe revenue
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
+                From webhook ledger · {periodLabel}
+              </Typography>
+              <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
+                <Chip size="small" label="billing_transactions" variant="outlined" />
+                {transactions.length > 0 ? (
+                  <Chip size="small" label={`${transactions.length} in table`} variant="outlined" />
+                ) : null}
+              </Stack>
+            </Box>
+          </Stack>
+
+          <Link
+            href={stripeBase}
+            target="_blank"
+            rel="noopener noreferrer"
+            underline="hover"
+            variant="body2"
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 0.5,
+              fontWeight: 600,
+              flexShrink: 0
+            }}
+          >
+            Open Stripe dashboard
+            <OpenInNewRoundedIcon sx={{ fontSize: 16 }} />
           </Link>
         </Stack>
-      </Stack>
 
-      {loading && !payload ? (
-        <Stack direction="row" spacing={1} alignItems="center">
-          <CircularProgress size={18} />
-          <Typography variant="body2">Loading Stripe ledger…</Typography>
-        </Stack>
-      ) : null}
+        {loading && !payload ? (
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 2 }}>
+            <CircularProgress size={18} />
+            <Typography variant="body2">Loading Stripe ledger…</Typography>
+          </Stack>
+        ) : null}
 
-      {error && !payload ? <Alert severity="warning">{error}</Alert> : null}
+        {error && !payload ? <Alert severity="warning" sx={{ mt: 2 }}>{error}</Alert> : null}
 
-      {payload && !payload.configured ? (
-        <Alert severity="info">{payload.message}</Alert>
-      ) : null}
+        {payload && !payload.configured ? <Alert severity="info" sx={{ mt: 2 }}>{payload.message}</Alert> : null}
 
-      {totals ? (
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
-          <Box>
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-              Net collected
-            </Typography>
-            <Typography variant="h6" sx={{ fontWeight: 800 }}>
-              {formatMoney(totals.netCents, currency)}
-            </Typography>
-          </Box>
-          <Box>
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-              Gross
-            </Typography>
-            <Typography variant="body1">{formatMoney(totals.grossCents, currency)}</Typography>
-          </Box>
-          <Box>
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-              Refunds
-            </Typography>
-            <Typography variant="body1">{formatMoney(totals.refundCents, currency)}</Typography>
-          </Box>
-          <Box>
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-              Transactions
-            </Typography>
-            <Typography variant="body1">{totals.transactionCount}</Typography>
-          </Box>
-        </Stack>
-      ) : null}
+        {totals ? (
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2.5}
+            sx={{
+              mt: 2,
+              p: 1.5,
+              borderRadius: 1.5,
+              bgcolor: 'action.hover',
+              border: 1,
+              borderColor: 'divider'
+            }}
+          >
+            <StatBlock label="Net collected" value={formatMoney(totals.netCents, currency)} emphasis />
+            <StatBlock label="Gross" value={formatMoney(totals.grossCents, currency)} />
+            <StatBlock label="Refunds" value={formatMoney(totals.refundCents, currency)} />
+            <StatBlock label="Transactions" value={totals.transactionCount} />
+          </Stack>
+        ) : null}
 
-      {payload?.transactions?.length ? (
-        <Box sx={{ overflowX: 'auto' }}>
+        {!loading && payload?.configured && transactions.length === 0 ? (
+          <Alert severity="info" sx={{ mt: 2 }}>
+            No Stripe charges recorded in this period yet.
+          </Alert>
+        ) : null}
+
+        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 1.5 }}>
+          Updated {updatedLabel} · refreshes every {refreshSec}s · not estimated ROI
+        </Typography>
+
+        {error && payload ? (
+          <Typography variant="caption" color="warning.main" sx={{ display: 'block', mt: 0.5 }}>
+            Last refresh failed: {error}
+          </Typography>
+        ) : null}
+      </Box>
+
+      {transactions.length > 0 ? (
+        <ExpandableTableSection
+          count={transactions.length}
+          itemLabel="transactions"
+          expanded={tableExpanded}
+          onToggle={() => setTableExpanded((v) => !v)}
+        >
           <Table size="small">
             <TableHead>
               <TableRow>
@@ -166,7 +212,7 @@ export default function StripeRevenuePanel({ refreshSec = 60 }) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {payload.transactions.map((row) => (
+              {transactions.map((row) => (
                 <TableRow key={row.id} hover>
                   <TableCell>
                     <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
@@ -192,19 +238,7 @@ export default function StripeRevenuePanel({ refreshSec = 60 }) {
               ))}
             </TableBody>
           </Table>
-        </Box>
-      ) : payload?.configured ? (
-        <Alert severity="info">No Stripe charges recorded in this period yet.</Alert>
-      ) : null}
-
-      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 1.5 }}>
-        Updated {updatedLabel} · refreshes every {refreshSec}s · not estimated ROI
-      </Typography>
-
-      {error && payload ? (
-        <Typography variant="caption" color="warning.main" sx={{ display: 'block', mt: 0.5 }}>
-          Last refresh failed: {error}
-        </Typography>
+        </ExpandableTableSection>
       ) : null}
     </Paper>
   );

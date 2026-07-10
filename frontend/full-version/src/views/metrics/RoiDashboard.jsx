@@ -4,7 +4,8 @@ import { Box, Stack, Typography } from '@mui/material';
 import PlatformHealthIndicator from '@/components/PlatformHealthIndicator';
 import LiveEventsPanel from '@/components/LiveEventsPanel';
 import StripeRevenuePanel from '@/components/StripeRevenuePanel';
-import TranslationHealthPanel from '@/components/TranslationHealthPanel';
+import EventUsagePanel from '@/components/EventUsagePanel';
+import MonitoringAlertsPanel from '@/components/MonitoringAlertsPanel';
 
 export default function RoiDashboard() {
   return (
@@ -14,9 +15,10 @@ export default function RoiDashboard() {
           Dashboard
         </Typography>
 
-        <PlatformHealthIndicator />
-        <TranslationHealthPanel />
         <LiveEventsPanel />
+        <PlatformHealthIndicator />
+        <MonitoringAlertsPanel />
+        <EventUsagePanel />
         <StripeRevenuePanel />
       </Stack>
     </Box>

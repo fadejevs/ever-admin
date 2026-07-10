@@ -31,17 +31,32 @@ export async function fetchMetricsUpstream(path, requestUrl) {
   }
 
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
     const res = await fetch(target.toString(), {
       headers: getMetricsAuthHeaders(),
-      cache: 'no-store'
+      cache: 'no-store',
+      signal: controller.signal
     });
+    clearTimeout(timer);
     const contentType = res.headers.get('content-type') || '';
     if (!contentType.includes('application/json')) {
-      return { ok: false, status: 502, data: { error: 'Upstream returned non-JSON' } };
+      return { ok: false, status: 502, data: { error: 'Upstream returned non-JSON', upstream: base } };
     }
     const data = await res.json();
     return { ok: res.ok, status: res.status, data };
-  } catch {
-    return { ok: false, status: 502, data: { error: 'Failed to reach metrics API' } };
+  } catch (error) {
+    const timedOut = error?.name === 'AbortError';
+    return {
+      ok: false,
+      status: 502,
+      data: {
+        error: timedOut
+          ? `Main app health check timed out (${base}). Is it running?`
+          : `Failed to reach main app at ${base}`,
+        upstream: base,
+        offline: true
+      }
+    };
   }
 }

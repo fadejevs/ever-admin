@@ -77,6 +77,12 @@ export default function TranslationHealthPanel({ refreshSec = 20 }) {
         </Stack>
       ) : null}
 
+      {payload?.offline ? (
+        <Alert severity="warning">
+          {payload.message || 'Main app unreachable — translation health needs the main app on NEXT_PUBLIC_METRICS_API.'}
+        </Alert>
+      ) : null}
+
       {error && !payload ? <Alert severity="warning">{error}</Alert> : null}
 
       {translation ? (

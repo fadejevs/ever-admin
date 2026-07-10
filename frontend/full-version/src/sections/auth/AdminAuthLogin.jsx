@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-// @mui
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Alert from '@mui/material/Alert';
@@ -11,178 +10,221 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
-import useTheme from '@mui/material/styles/useTheme';
-import useMediaQuery from '@mui/material/useMediaQuery';
+import InputAdornment from '@mui/material/InputAdornment';
+import MailOutlineRoundedIcon from '@mui/icons-material/MailOutlineRounded';
+import PinOutlinedIcon from '@mui/icons-material/PinOutlined';
 
-// @project
 import { supabase } from '@/utils/supabase/client';
+import { isAdminEmail, normalizeAdminEmail } from '@/utils/adminAuth';
 
 export default function AdminAuthLogin() {
   const router = useRouter();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [step, setStep] = useState('email');
   const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const normalizedEmail = normalizeAdminEmail(email);
+
+  const sendCode = async () => {
     setLoading(true);
     setError('');
-    setSuccess('');
 
-    if (!email.endsWith('@everspeak.ai')) {
-      setError('Only @everspeak.ai email addresses are allowed.');
+    if (!isAdminEmail(normalizedEmail)) {
+      setError('Only @everspeak.ai email addresses can sign in.');
       setLoading(false);
       return;
     }
 
     try {
-      // Determine the correct callback URL based on the current domain
-      const isAdminDomain = window.location.hostname === 'admin.everspeak.ai';
-      const callbackUrl = isAdminDomain 
-        ? `${window.location.origin}/admin/auth/callback`
-        : `${window.location.origin}/auth/callback/success`;
-
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: callbackUrl,
-          data: {
-            admin_access: true,
-            redirect_to: `${window.location.origin}/dashboard`
-          }
-        }
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: normalizedEmail,
+        options: { shouldCreateUser: false }
       });
 
-      if (error) {
-        // Handle rate limiting specifically
-        if (error.message.includes('429') || error.message.includes('rate limit')) {
-          throw new Error('Rate limit exceeded. Please wait a few minutes before trying again.');
+      if (otpError) {
+        if (otpError.message.includes('429') || otpError.message.includes('rate limit')) {
+          throw new Error('Too many attempts. Wait a few minutes and try again.');
         }
-        throw error;
+        if (otpError.message.includes('Signups not allowed') || otpError.message.includes('User not found')) {
+          throw new Error('This email is not registered. Ask an admin to invite you first.');
+        }
+        throw otpError;
       }
 
-      setSuccess('Magic link sent! Check your email.');
-    } catch (error) {
-      console.error('Admin login error:', error);
-
-      // Provide user-friendly error messages
-      let errorMessage = error.message;
-      if (error.message.includes('rate limit') || error.message.includes('429')) {
-        errorMessage = 'Too many login attempts. Please wait 5-10 minutes before trying again.';
-      } else if (error.message.includes('Invalid email')) {
-        errorMessage = 'Please enter a valid @everspeak.ai email address.';
-      } else if (error.message.includes('Email not confirmed')) {
-        errorMessage = 'Please check your email and click the confirmation link first.';
-      }
-
-      setError(errorMessage);
+      setStep('code');
+      setCode('');
+    } catch (err) {
+      console.error('Admin login error:', err);
+      setError(err?.message || 'Failed to send login code.');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <Box sx={{ width: '100%', overflow: 'hidden' }}>
-      <form onSubmit={handleSubmit}>
-        <Stack spacing={isMobile ? 2.5 : 3} sx={{ width: '100%' }}>
-          <Typography
-            variant="h6"
-            sx={{
-              fontSize: { xs: '1.1rem', sm: '1.25rem' },
-              fontWeight: 600,
-              textAlign: 'center'
-            }}
-          >
-            Admin Login
-          </Typography>
+  const verifyCode = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    const token = code.replace(/\D/g, '');
+    if (token.length !== 6) {
+      setError('Enter the 6-digit code from your email.');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        email: normalizedEmail,
+        token,
+        type: 'email'
+      });
+
+      if (verifyError) throw verifyError;
+
+      if (!isAdminEmail(data?.user?.email)) {
+        await supabase.auth.signOut();
+        throw new Error('Only @everspeak.ai accounts can access the admin dashboard.');
+      }
+
+      router.replace('/dashboard');
+    } catch (err) {
+      console.error('Admin verify error:', err);
+      setError(err?.message || 'Invalid or expired code. Request a new one.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEmailSubmit = async (e) => {
+    e.preventDefault();
+    await sendCode();
+  };
+
+  if (step === 'code') {
+    return (
+      <Box component="form" onSubmit={verifyCode} sx={{ width: '100%' }}>
+        <Stack spacing={2.5}>
+          <Stack spacing={0.5}>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              Enter your code
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              We sent a 6-digit code to <strong>{normalizedEmail}</strong>
+            </Typography>
+          </Stack>
 
           <TextField
-            label="Email Address"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="your.email@everspeak.ai"
+            label="Login code"
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            placeholder="123456"
             required
             fullWidth
+            autoFocus
             disabled={loading}
-            InputLabelProps={{
-              sx: {
-                fontSize: { xs: '0.85rem', sm: '0.875rem' },
-                lineHeight: 1.2,
-                top: '50%',
-                left: '20px',
-                opacity: 0.7,
-                transform: 'translateY(-50%)',
-                '&.Mui-focused, &.MuiFormLabel-filled': {
-                  top: 0,
-                  transform: 'translateY(-50%) scale(0.75)'
-                }
-              }
+            inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', maxLength: 6, autoComplete: 'one-time-code' }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <PinOutlinedIcon fontSize="small" color="action" />
+                </InputAdornment>
+              )
             }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 2,
-                fontSize: { xs: '0.9rem', sm: '1rem' }
-              }
-            }}
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'background.paper', letterSpacing: 4 } }}
           />
 
-          {error && (
-            <Alert
-              severity="error"
-              sx={{
-                borderRadius: 2,
-                fontSize: { xs: '0.8rem', sm: '0.875rem' },
-                '& .MuiAlert-message': {
-                  width: '100%',
-                  wordBreak: 'break-word'
-                }
-              }}
-            >
-              <Typography variant="body2" sx={{ fontSize: 'inherit' }}>
-                {error}
-              </Typography>
+          {error ? (
+            <Alert severity="error" sx={{ borderRadius: 2 }}>
+              {error}
             </Alert>
-          )}
-
-          {success && (
-            <Alert
-              severity="success"
-              sx={{
-                borderRadius: 2,
-                fontSize: { xs: '0.8rem', sm: '0.875rem' },
-                '& .MuiAlert-message': {
-                  width: '100%',
-                  wordBreak: 'break-word'
-                }
-              }}
-            >
-              <Typography variant="body2" sx={{ fontSize: 'inherit' }}>
-                {success}
-              </Typography>
-            </Alert>
-          )}
+          ) : null}
 
           <Button
             type="submit"
             variant="contained"
-            disabled={loading}
+            size="large"
+            disabled={loading || code.replace(/\D/g, '').length !== 6}
             fullWidth
-            sx={{
-              height: { xs: 44, sm: 48 },
-              borderRadius: 2,
-              fontSize: { xs: '0.9rem', sm: '1rem' },
-              fontWeight: 600,
-              textTransform: 'none'
-            }}
+            sx={{ py: 1.25, borderRadius: 2, fontWeight: 700, textTransform: 'none' }}
           >
-            {loading ? <CircularProgress size={20} color="inherit" /> : 'Send Magic Link'}
+            {loading ? <CircularProgress size={18} color="inherit" /> : 'Sign in'}
           </Button>
+
+          <Stack direction="row" spacing={1} justifyContent="center">
+            <Button size="small" disabled={loading} onClick={() => sendCode()} sx={{ textTransform: 'none' }}>
+              Resend code
+            </Button>
+            <Button
+              size="small"
+              disabled={loading}
+              onClick={() => {
+                setStep('email');
+                setCode('');
+                setError('');
+              }}
+              sx={{ textTransform: 'none' }}
+            >
+              Use different email
+            </Button>
+          </Stack>
         </Stack>
-      </form>
+      </Box>
+    );
+  }
+
+  return (
+    <Box component="form" onSubmit={handleEmailSubmit} sx={{ width: '100%' }}>
+      <Stack spacing={2.5}>
+        <Stack spacing={0.5}>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            Sign in with email
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            We&apos;ll email you a 6-digit login code — no password needed.
+          </Typography>
+        </Stack>
+
+        <TextField
+          label="Work email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@everspeak.ai"
+          required
+          fullWidth
+          autoComplete="email"
+          autoFocus
+          disabled={loading}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <MailOutlineRoundedIcon fontSize="small" color="action" />
+              </InputAdornment>
+            )
+          }}
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'background.paper' } }}
+        />
+
+        {error ? (
+          <Alert severity="error" sx={{ borderRadius: 2 }}>
+            {error}
+          </Alert>
+        ) : null}
+
+        <Button
+          type="submit"
+          variant="contained"
+          size="large"
+          disabled={loading || !email.trim()}
+          fullWidth
+          sx={{ py: 1.25, borderRadius: 2, fontWeight: 700, textTransform: 'none' }}
+        >
+          {loading ? <CircularProgress size={18} color="inherit" /> : 'Send login code'}
+        </Button>
+      </Stack>
     </Box>
   );
 }

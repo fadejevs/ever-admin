@@ -37,7 +37,7 @@ function formatLatency(ms) {
 function describeStatus(health) {
   const status = health?.status || 'unknown';
   if (status === 'unknown') {
-    return 'Not enough API traffic in the last window to assess health.';
+    return 'Not enough translation, ASR, or TTS traffic in the last window to assess health.';
   }
   if (status === 'healthy') {
     return 'Error rate and response times are within normal limits.';
@@ -91,6 +91,15 @@ export default function PlatformHealthIndicator({ refreshSec = 20 }) {
     );
   }
 
+  if (health?.offline) {
+    return (
+      <Alert severity="warning" sx={{ borderRadius: 2 }}>
+        Platform health unavailable — {health.message || 'Main app not reachable'}. Keep <strong>localhost:3000</strong> running
+        (or set <code>NEXT_PUBLIC_METRICS_API</code> to prod).
+      </Alert>
+    );
+  }
+
   if (error && !health) {
     return (
       <Alert severity="warning" sx={{ borderRadius: 2 }}>
@@ -113,8 +122,9 @@ export default function PlatformHealthIndicator({ refreshSec = 20 }) {
       <Stack spacing={0.75}>
         <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
           <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-            Platform health
+            Pipeline health
           </Typography>
+          <Chip size="small" label="Translation · ASR · TTS" variant="outlined" />
           <Chip size="small" label={meta.label} color={meta.color} variant={status === 'unknown' ? 'outlined' : 'filled'} />
           {health?.slackAlertsEnabled ? (
             <Chip size="small" label="Slack alerts on" variant="outlined" color="info" />

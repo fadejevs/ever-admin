@@ -8,8 +8,26 @@ const METRICS_BASE_URL = '';
 
 const client = axios.create({
   baseURL: METRICS_BASE_URL,
-  timeout: 15000
+  timeout: 10000
 });
+
+function isOfflineError(error) {
+  const status = error?.response?.status;
+  const msg = String(error?.message || '');
+  return status === 502 || status === 503 || msg.includes('timeout') || error?.code === 'ECONNABORTED';
+}
+
+function offlineHealthPayload(message) {
+  return {
+    offline: true,
+    status: 'unknown',
+    message,
+    services: [],
+    errorRatePct: 0,
+    p95LatencyMs: 0,
+    totalRequests: 0
+  };
+}
 
 async function getAdminAuthHeaders() {
   const {
@@ -34,7 +52,11 @@ export async function fetchHealthSummary(params = {}) {
     const { data } = await client.get('/api/health-summary', { params });
     return data;
   } catch (error) {
-    console.error('fetchHealthSummary error:', error?.response?.data || error?.message || error);
+    if (isOfflineError(error)) {
+      return offlineHealthPayload(
+        error?.response?.data?.error || 'Main app unreachable — start it on localhost:3000 (NEXT_PUBLIC_METRICS_API).'
+      );
+    }
     throw error;
   }
 }
@@ -44,7 +66,13 @@ export async function fetchServiceHealth(params = {}) {
     const { data } = await client.get('/api/services', { params });
     return data;
   } catch (error) {
-    console.error('fetchServiceHealth error:', error?.response?.data || error?.message || error);
+    if (isOfflineError(error)) {
+      return {
+        offline: true,
+        services: [],
+        message: error?.response?.data?.error || 'Main app unreachable — health proxy needs the main app running.'
+      };
+    }
     throw error;
   }
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Box, Typography, CircularProgress, Alert, Button } from '@mui/material';
 import { supabase } from '@/utils/supabase/client';
+import { isAdminEmail } from '@/utils/adminAuth';
 
 export default function AdminAuthCallback() {
   const router = useRouter();
@@ -35,7 +36,7 @@ export default function AdminAuthCallback() {
 
           if (error) throw error;
 
-          if (data?.session?.user?.email?.endsWith('@everspeak.ai')) {
+          if (data?.session?.user && isAdminEmail(data.session.user.email)) {
             setStatus('Admin authentication successful! Redirecting...');
             setTimeout(() => router.push('/dashboard'), 1000);
           } else {
@@ -50,7 +51,7 @@ export default function AdminAuthCallback() {
           
           if (error) throw error;
           
-          if (data?.session?.user?.email?.endsWith('@everspeak.ai')) {
+          if (data?.session?.user && isAdminEmail(data.session.user.email)) {
             setStatus('Success! Redirecting to admin dashboard...');
             setTimeout(() => router.push('/dashboard'), 1000);
           } else {

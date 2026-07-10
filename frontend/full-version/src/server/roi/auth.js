@@ -1,4 +1,5 @@
 import { supabase } from '@/utils/supabase/server';
+import { isAdminEmail } from '@/utils/adminAuth';
 
 export async function assertAdminRequest(request) {
   if (process.env.NODE_ENV !== 'production' || process.env.ROI_DISABLE_AUTH === 'true') {
@@ -18,7 +19,7 @@ export async function assertAdminRequest(request) {
   }
 
   const email = data.user.email || '';
-  if (!email.endsWith('@everspeak.ai')) {
+  if (!isAdminEmail(email)) {
     return { ok: false, status: 403, message: 'Admin access required' };
   }
 
