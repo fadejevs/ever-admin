@@ -33,7 +33,7 @@ function formatMoney(cents, currency = 'EUR') {
 function stripeDashboardBase() {
   const raw = process.env.NEXT_PUBLIC_STRIPE_DASHBOARD_BASE?.trim();
   if (raw) return raw.replace(/\/$/, '');
-  return 'https://dashboard.stripe.com/test';
+  return 'https://dashboard.stripe.com';
 }
 
 function stripeResourceUrl(row) {
@@ -119,7 +119,7 @@ export default function StripeRevenuePanel({ refreshSec = 60 }) {
                 From webhook ledger · {periodLabel}
               </Typography>
               <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
-                <Chip size="small" label="billing_transactions" variant="outlined" />
+                <Chip size="small" label="live mode only" variant="outlined" color="success" />
                 {transactions.length > 0 ? (
                   <Chip size="small" label={`${transactions.length} in table`} variant="outlined" />
                 ) : null}

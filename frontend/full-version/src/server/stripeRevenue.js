@@ -93,8 +93,9 @@ export async function fetchStripeRevenue({ startDate, endDate, limit = 15 } = {}
   const { data, error } = await supabase
     .from('billing_transactions')
     .select(
-      'id, workspace_id, type, units, amount_cents, currency, stripe_payment_intent_id, stripe_invoice_id, stripe_refund_id, created_at, note'
+      'id, workspace_id, type, units, amount_cents, currency, stripe_payment_intent_id, stripe_invoice_id, stripe_refund_id, created_at, note, stripe_livemode'
     )
+    .eq('stripe_livemode', true)
     .gte('created_at', range.startIso)
     .lte('created_at', range.endIso)
     .order('created_at', { ascending: false });
@@ -143,7 +144,7 @@ export async function fetchStripeRevenue({ startDate, endDate, limit = 15 } = {}
   return {
     source: 'billing_transactions',
     configured: true,
-    message: 'Recorded by Stripe webhooks into billing_transactions.',
+    message: 'Live Stripe charges only (sandbox/test ledger rows excluded).',
     startDate: range.startDate,
     endDate: range.endDate,
     totals,
