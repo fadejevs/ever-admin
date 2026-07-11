@@ -16,10 +16,10 @@ export default function RoiDashboard() {
         </Typography>
 
         <LiveEventsPanel />
-        <PlatformHealthIndicator />
-        <MonitoringAlertsPanel />
         <EventUsagePanel />
         <StripeRevenuePanel />
+        <PlatformHealthIndicator />
+        <MonitoringAlertsPanel />
       </Stack>
     </Box>
   );
