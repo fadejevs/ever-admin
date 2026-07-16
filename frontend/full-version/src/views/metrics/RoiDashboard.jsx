@@ -6,6 +6,7 @@ import LiveEventsPanel from '@/components/LiveEventsPanel';
 import StripeRevenuePanel from '@/components/StripeRevenuePanel';
 import EventUsagePanel from '@/components/EventUsagePanel';
 import MonitoringAlertsPanel from '@/components/MonitoringAlertsPanel';
+import UserFeedbackPanel from '@/components/UserFeedbackPanel';
 
 export default function RoiDashboard() {
   return (
@@ -20,6 +21,7 @@ export default function RoiDashboard() {
         <StripeRevenuePanel />
         <PlatformHealthIndicator />
         <MonitoringAlertsPanel />
+        <UserFeedbackPanel />
       </Stack>
     </Box>
   );
