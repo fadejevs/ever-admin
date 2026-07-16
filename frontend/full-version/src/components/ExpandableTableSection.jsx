@@ -21,7 +21,7 @@ export default function ExpandableTableSection({
       sx={{
         borderTop: 1,
         borderColor: 'divider',
-        bgcolor: expanded ? 'action.hover' : 'transparent',
+        bgcolor: expanded ? 'grey.50' : 'transparent',
         transition: 'background-color 0.2s ease'
       }}
     >
@@ -32,26 +32,19 @@ export default function ExpandableTableSection({
         disabled={disabled}
         onClick={onToggle}
         sx={{
-          py: 1.25,
+          py: 1.1,
           px: 2,
           justifyContent: 'space-between',
           textTransform: 'none',
           borderRadius: 0,
-          '&:hover': { bgcolor: 'action.selected' }
+          '&:hover': { bgcolor: 'action.hover' }
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-          {!expanded ? <UnfoldMoreRoundedIcon fontSize="small" color="primary" /> : null}
-          <Box sx={{ textAlign: 'left', minWidth: 0 }}>
-            <Typography variant="body2" sx={{ fontWeight: 700 }}>
-              {expanded ? `Hide ${itemLabel}` : `Show ${countText}`}
-            </Typography>
-            {!expanded ? (
-              <Typography variant="caption" color="text.secondary">
-                Tap to expand the full table
-              </Typography>
-            ) : null}
-          </Box>
+          {!expanded ? <UnfoldMoreRoundedIcon fontSize="small" color="action" /> : null}
+          <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+            {expanded ? `Hide ${itemLabel}` : `Show ${countText}`}
+          </Typography>
         </Box>
         {expanded ? <ExpandLessRoundedIcon fontSize="small" /> : <ExpandMoreRoundedIcon fontSize="small" />}
       </Button>

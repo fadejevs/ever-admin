@@ -7,7 +7,6 @@ import {
   Chip,
   CircularProgress,
   Link,
-  Paper,
   Stack,
   Table,
   TableBody,
@@ -16,8 +15,24 @@ import {
   TableRow,
   Typography
 } from '@mui/material';
-import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
+import SensorsRoundedIcon from '@mui/icons-material/SensorsRounded';
 import { fetchLiveEvents } from '@/services/liveEventsService';
+import DashboardPanel from '@/components/DashboardPanel';
+
+function formatWhen(iso) {
+  if (!iso) return '—';
+  try {
+    return new Date(iso).toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+  } catch {
+    return '—';
+  }
+}
 
 function formatDuration(ms) {
   if (ms == null || !Number.isFinite(ms)) return '—';
@@ -68,6 +83,7 @@ export default function LiveEventsPanel({ refreshSec = 10 }) {
   }, [load, refreshSec]);
 
   const events = payload?.events || [];
+  const recentEvents = payload?.recentEvents || [];
   const totalListeners = payload?.totalListeners ?? events.reduce((sum, e) => sum + (e.viewerCount ?? 0), 0);
   const updatedLabel = useMemo(() => {
     if (!payload?.updatedAt) return '—';
@@ -79,23 +95,27 @@ export default function LiveEventsPanel({ refreshSec = 10 }) {
   }, [payload?.updatedAt]);
 
   return (
-    <Paper sx={{ p: 2, borderRadius: 2 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }} flexWrap="wrap" gap={1}>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <FiberManualRecordIcon sx={{ color: '#F44336', fontSize: 14 }} />
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            Live events now
-          </Typography>
-          <Chip size="small" label={`${events.length} live`} color={events.length ? 'error' : 'default'} variant={events.length ? 'filled' : 'outlined'} />
+    <DashboardPanel
+      title="Live events now"
+      subtitle="Active broadcast sessions and listener counts."
+      icon={SensorsRoundedIcon}
+      iconTone="live"
+      accent={events.length ? 'error' : null}
+      chips={
+        <>
+          <Chip
+            size="small"
+            label={`${events.length} live`}
+            color={events.length ? 'error' : 'default'}
+            variant={events.length ? 'filled' : 'outlined'}
+          />
           {events.length > 0 ? (
             <Chip size="small" label={`${totalListeners} listeners`} color="primary" variant="outlined" />
           ) : null}
-        </Stack>
-        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-          Updated {updatedLabel} · refresh every {refreshSec}s · listeners = broadcast viewers (excludes host)
-        </Typography>
-      </Stack>
-
+        </>
+      }
+      footer={`Updated ${updatedLabel} · refresh every ${refreshSec}s · listeners = broadcast viewers (excludes host)`}
+    >
       {loading && !payload ? (
         <Stack direction="row" spacing={1} alignItems="center">
           <CircularProgress size={18} />
@@ -103,12 +123,10 @@ export default function LiveEventsPanel({ refreshSec = 10 }) {
         </Stack>
       ) : null}
 
-      {error && !payload ? (
-        <Alert severity="warning">{error}</Alert>
-      ) : null}
+      {error && !payload ? <Alert severity="warning">{error}</Alert> : null}
 
       {!loading && !error && events.length === 0 ? (
-        <Alert severity="info">
+        <Alert severity="info" sx={{ borderRadius: 2 }}>
           {payload?.staleLiveCount
             ? `No events have active connections right now (${payload.staleLiveCount} stuck as Live in DB).`
             : 'No events are live right now.'}
@@ -116,7 +134,7 @@ export default function LiveEventsPanel({ refreshSec = 10 }) {
       ) : null}
 
       {events.length > 0 ? (
-        <Box sx={{ overflowX: 'auto' }}>
+        <Box sx={{ overflowX: 'auto', mx: -0.5 }}>
           <Table size="small">
             <TableHead>
               <TableRow>
@@ -178,6 +196,45 @@ export default function LiveEventsPanel({ refreshSec = 10 }) {
           Last refresh failed: {error}
         </Typography>
       ) : null}
-    </Paper>
+
+      {recentEvents.length > 0 ? (
+        <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontWeight: 600 }}>
+            Last {recentEvents.length} event{recentEvents.length === 1 ? '' : 's'} run
+          </Typography>
+          <Stack spacing={1}>
+            {recentEvents.map((event) => (
+              <Stack
+                key={event.id}
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={{ xs: 0.25, sm: 1 }}
+                justifyContent="space-between"
+                alignItems={{ sm: 'center' }}
+                sx={{
+                  py: 0.75,
+                  px: 1,
+                  borderRadius: 1.5,
+                  bgcolor: 'grey.50',
+                  border: '1px solid',
+                  borderColor: 'divider'
+                }}
+              >
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
+                    {event.title}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" noWrap>
+                    {event.workspaceName || event.customerEmail || event.workspaceId || '—'} · {event.status}
+                  </Typography>
+                </Box>
+                <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
+                  {formatWhen(event.ranAt)}
+                </Typography>
+              </Stack>
+            ))}
+          </Stack>
+        </Box>
+      ) : null}
+    </DashboardPanel>
   );
 }

@@ -3,13 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
-  Box,
   Button,
   Chip,
   CircularProgress,
   Link,
   MenuItem,
-  Paper,
   Select,
   Stack,
   Table,
@@ -20,8 +18,9 @@ import {
   Typography
 } from '@mui/material';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
-import DataUsageRoundedIcon from '@mui/icons-material/DataUsageRounded';
+import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
 import ExpandableTableSection from '@/components/ExpandableTableSection';
+import DashboardPanel from '@/components/DashboardPanel';
 import { downloadEventUsageCsv, fetchEventUsage } from '@/services/eventUsageService';
 
 function formatDuration(seconds) {
@@ -157,125 +156,84 @@ export default function EventUsagePanel({ refreshSec = 60, defaultRangeKey = '30
   const periodLabel = formatPeriodLabel(payload);
 
   return (
-    <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
-      <Box sx={{ p: 2 }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ md: 'flex-start' }}>
-          <Stack direction="row" spacing={1.5} alignItems="flex-start">
-            <Box
-              sx={{
-                width: 36,
-                height: 36,
-                borderRadius: 1.5,
-                bgcolor: 'primary.main',
-                color: 'primary.contrastText',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-                mt: 0.25
-              }}
-            >
-              <DataUsageRoundedIcon fontSize="small" />
-            </Box>
-            <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
-                Event usage & export
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
-                {payload?.unitDefinition || 'Units from billing ledger on events (chargeable time only).'}
-              </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                {periodLabel}
-              </Typography>
-              {!loading && events.length > 0 ? (
-                <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
-                  <Chip size="small" label={`${payload?.totalUnits ?? 0} units total`} color="primary" variant="outlined" />
-                  <Chip size="small" label={`${events.length} event${events.length === 1 ? '' : 's'}`} variant="outlined" />
-                </Stack>
-              ) : null}
-            </Box>
-          </Stack>
-
-          <Stack direction="row" spacing={1} alignItems="center" flexShrink={0}>
-            <Select size="small" value={rangeKey} onChange={(e) => setRangeKey(e.target.value)} sx={{ minWidth: 150 }}>
-              {RANGE_OPTIONS.map((opt) => (
-                <MenuItem key={opt.key} value={opt.key}>
-                  {opt.label}
-                </MenuItem>
-              ))}
-            </Select>
-            <Button
-              size="small"
-              variant="outlined"
-              startIcon={exporting ? <CircularProgress size={14} /> : <DownloadRoundedIcon />}
-              onClick={handleExport}
-              disabled={exporting || loading}
-            >
-              Export CSV
-            </Button>
-          </Stack>
+    <DashboardPanel
+      title="Event usage & export"
+      subtitle={payload?.unitDefinition || 'Units from billing ledger on events (chargeable time only).'}
+      icon={TableChartOutlinedIcon}
+      iconTone="primary"
+      actions={
+        <Stack direction="row" spacing={1} alignItems="center" flexShrink={0}>
+          <Select size="small" value={rangeKey} onChange={(e) => setRangeKey(e.target.value)} sx={{ minWidth: 150 }}>
+            {RANGE_OPTIONS.map((opt) => (
+              <MenuItem key={opt.key} value={opt.key}>
+                {opt.label}
+              </MenuItem>
+            ))}
+          </Select>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={exporting ? <CircularProgress size={14} /> : <DownloadRoundedIcon />}
+            onClick={handleExport}
+            disabled={exporting || loading}
+          >
+            Export CSV
+          </Button>
         </Stack>
-
-        {error ? (
-          <Alert severity="error" onClose={() => setError('')} sx={{ mt: 2 }}>
-            {error}
-          </Alert>
-        ) : null}
-
-        {loading && !payload ? (
-          <Stack alignItems="center" py={3}>
-            <CircularProgress size={28} />
-          </Stack>
-        ) : events.length === 0 ? (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            No events in this period.
-          </Typography>
-        ) : null}
-      </Box>
-
-      {!loading && events.length > 0 ? (
-        <ExpandableTableSection
-          count={events.length}
-          itemLabel="events"
-          expanded={tableExpanded}
-          onToggle={() => setTableExpanded((v) => !v)}
-        >
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Event</TableCell>
-                <TableCell>Last active</TableCell>
-                <TableCell>Duration</TableCell>
-                <TableCell align="right">Units</TableCell>
-                <TableCell>Languages</TableCell>
-                <TableCell align="right">Listeners</TableCell>
-                <TableCell>Customer</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {events.map((event) => (
-                <TableRow key={event.id} hover>
-                  <TableCell>
-                    <Stack spacing={0.25}>
-                      <Link href={broadcastUrl(event.id)} target="_blank" rel="noopener noreferrer" underline="hover">
-                        {event.title}
-                      </Link>
-                      <Typography variant="caption" color="text.secondary">
-                        {event.status}
-                      </Typography>
-                    </Stack>
-                  </TableCell>
-                    <TableCell>{formatWhen(event.updatedAt || event.createdAt)}</TableCell>
-                  <TableCell>
-                    <Stack spacing={0.25}>
-                      <Typography variant="body2">{formatDuration(event.durationSeconds)}</Typography>
-                      {event.bonusSecondsConsumed > 0 && (
+      }
+      chips={
+        !loading && events.length > 0 ? (
+          <>
+            <Chip size="small" label={`${payload?.totalUnits ?? 0} units total`} color="primary" variant="outlined" />
+            <Chip size="small" label={`${events.length} event${events.length === 1 ? '' : 's'}`} variant="outlined" />
+          </>
+        ) : null
+      }
+      footer={periodLabel}
+      footerSlot={
+        !loading && events.length > 0 ? (
+          <ExpandableTableSection
+            count={events.length}
+            itemLabel="events"
+            expanded={tableExpanded}
+            onToggle={() => setTableExpanded((v) => !v)}
+          >
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Event</TableCell>
+                  <TableCell>Last active</TableCell>
+                  <TableCell>Duration</TableCell>
+                  <TableCell align="right">Units</TableCell>
+                  <TableCell>Languages</TableCell>
+                  <TableCell align="right">Listeners</TableCell>
+                  <TableCell>Customer</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {events.map((event) => (
+                  <TableRow key={event.id} hover>
+                    <TableCell>
+                      <Stack spacing={0.25}>
+                        <Link href={broadcastUrl(event.id)} target="_blank" rel="noopener noreferrer" underline="hover">
+                          {event.title}
+                        </Link>
                         <Typography variant="caption" color="text.secondary">
-                          {formatDuration(event.chargeableSeconds)} chargeable
+                          {event.status}
                         </Typography>
-                      )}
-                    </Stack>
-                  </TableCell>
+                      </Stack>
+                    </TableCell>
+                    <TableCell>{formatWhen(event.updatedAt || event.createdAt)}</TableCell>
+                    <TableCell>
+                      <Stack spacing={0.25}>
+                        <Typography variant="body2">{formatDuration(event.durationSeconds)}</Typography>
+                        {event.bonusSecondsConsumed > 0 && (
+                          <Typography variant="caption" color="text.secondary">
+                            {formatDuration(event.chargeableSeconds)} chargeable
+                          </Typography>
+                        )}
+                      </Stack>
+                    </TableCell>
                     <TableCell align="right">
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
                         {event.unitsConsumed}
@@ -284,34 +242,51 @@ export default function EventUsagePanel({ refreshSec = 60, defaultRangeKey = '30
                         {event.unitsIsEstimated ? 'est.' : 'billed'} · ×{event.targetLanguageCount} lang
                       </Typography>
                     </TableCell>
-                  <TableCell>
-                    <Typography variant="body2" sx={{ maxWidth: 220 }}>
-                      {formatLangs(event.sourceLanguages, event.targetLanguages)}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="right">
-                    {event.status === 'Live' && event.currentListeners != null ? (
-                      <Stack spacing={0.25} alignItems="flex-end">
-                        <Typography variant="body2">{event.currentListeners} now</Typography>
-                        {event.peakListeners > event.currentListeners && (
-                          <Typography variant="caption" color="text.secondary">
-                            peak {event.peakListeners}
-                          </Typography>
-                        )}
-                      </Stack>
-                    ) : (
-                      <Typography variant="body2">{event.peakListeners > 0 ? event.peakListeners : '—'}</Typography>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">{event.customerEmail || '—'}</Typography>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </ExpandableTableSection>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ maxWidth: 220 }}>
+                        {formatLangs(event.sourceLanguages, event.targetLanguages)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      {event.status === 'Live' && event.currentListeners != null ? (
+                        <Stack spacing={0.25} alignItems="flex-end">
+                          <Typography variant="body2">{event.currentListeners} now</Typography>
+                          {event.peakListeners > event.currentListeners && (
+                            <Typography variant="caption" color="text.secondary">
+                              peak {event.peakListeners}
+                            </Typography>
+                          )}
+                        </Stack>
+                      ) : (
+                        <Typography variant="body2">{event.peakListeners > 0 ? event.peakListeners : '—'}</Typography>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{event.customerEmail || '—'}</Typography>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ExpandableTableSection>
+        ) : null
+      }
+    >
+      {error ? (
+        <Alert severity="error" onClose={() => setError('')}>
+          {error}
+        </Alert>
       ) : null}
-    </Paper>
+
+      {loading && !payload ? (
+        <Stack alignItems="center" py={2}>
+          <CircularProgress size={28} />
+        </Stack>
+      ) : events.length === 0 && !loading ? (
+        <Typography variant="body2" color="text.secondary">
+          No events in this period.
+        </Typography>
+      ) : null}
+    </DashboardPanel>
   );
 }

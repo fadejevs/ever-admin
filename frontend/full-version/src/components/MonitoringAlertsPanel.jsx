@@ -6,7 +6,6 @@ import {
   Box,
   Chip,
   CircularProgress,
-  Paper,
   Stack,
   Table,
   TableBody,
@@ -15,9 +14,10 @@ import {
   TableRow,
   Typography
 } from '@mui/material';
-import DataObjectRoundedIcon from '@mui/icons-material/DataObjectRounded';
+import HubOutlinedIcon from '@mui/icons-material/HubOutlined';
 import axios from 'axios';
 import { supabase } from '@/utils/supabase/client';
+import DashboardPanel from '@/components/DashboardPanel';
 
 const STATUS_COLOR = {
   healthy: 'success',
@@ -107,13 +107,13 @@ export default function MonitoringAlertsPanel({ refreshSec = 30 }) {
   );
 
   return (
-    <Paper variant="outlined" sx={{ p: 2 }}>
-      <Stack spacing={1.5}>
-        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-          <DataObjectRoundedIcon color="primary" fontSize="small" />
-          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-            Pipeline services
-          </Typography>
+    <DashboardPanel
+      title="Pipeline services"
+      subtitle="Per-service status from the last monitoring window."
+      icon={HubOutlinedIcon}
+      iconTone="pipeline"
+      chips={
+        <>
           {alerts?.slackConfigured ? (
             <Chip size="small" label="Slack alerts on" color="success" variant="outlined" />
           ) : (
@@ -125,67 +125,69 @@ export default function MonitoringAlertsPanel({ refreshSec = 30 }) {
           {activeIncidents.length > 0 ? (
             <Chip size="small" label={`${activeIncidents.length} open alert(s)`} color="error" />
           ) : null}
+        </>
+      }
+    >
+      {error && !loading ? (
+        <Alert severity="error" onClose={() => setError('')}>
+          {error}
+        </Alert>
+      ) : null}
+
+      {loading && !payload ? (
+        <Stack direction="row" spacing={1} alignItems="center" py={1}>
+          <CircularProgress size={22} />
+          <Typography variant="body2" color="text.secondary">
+            Loading pipeline metrics…
+          </Typography>
         </Stack>
+      ) : null}
 
-        {error && !loading ? (
-          <Alert severity="error" onClose={() => setError('')}>
-            {error}
-          </Alert>
-        ) : null}
+      {!loading && visibleServices.length > 0 ? (
+        <Box sx={{ overflowX: 'auto', mx: -0.5 }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Service</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell align="right">Failed</TableCell>
+                <TableCell align="right">Requests</TableCell>
+                <TableCell align="right">95% finish within</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {visibleServices.map((svc) => (
+                <TableRow key={svc.id} hover>
+                  <TableCell>{svc.name}</TableCell>
+                  <TableCell>
+                    <Chip
+                      size="small"
+                      label={STATUS_LABEL[svc.status] || svc.status}
+                      color={STATUS_COLOR[svc.status] || 'default'}
+                      variant={svc.status === 'unknown' ? 'outlined' : 'filled'}
+                    />
+                  </TableCell>
+                  <TableCell align="right">{svc.failures ?? 0}</TableCell>
+                  <TableCell align="right">{svc.requests ?? 0}</TableCell>
+                  <TableCell align="right">{formatLatency(svc.p95LatencyMs)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Box>
+      ) : null}
 
-        {loading && !payload ? (
-          <Stack direction="row" spacing={1} alignItems="center" py={2}>
-            <CircularProgress size={22} />
-            <Typography variant="body2" color="text.secondary">
-              Loading pipeline metrics…
-            </Typography>
-          </Stack>
-        ) : (
-          <>
-            {visibleServices.length > 0 ? (
-              <Box sx={{ overflowX: 'auto' }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Service</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell align="right">Failed</TableCell>
-                      <TableCell align="right">Requests</TableCell>
-                      <TableCell align="right">95% finish within</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {visibleServices.map((svc) => (
-                      <TableRow key={svc.id}>
-                        <TableCell>{svc.name}</TableCell>
-                        <TableCell>
-                          <Chip
-                            size="small"
-                            label={STATUS_LABEL[svc.status] || svc.status}
-                            color={STATUS_COLOR[svc.status] || 'default'}
-                            variant={svc.status === 'unknown' ? 'outlined' : 'filled'}
-                          />
-                        </TableCell>
-                        <TableCell align="right">{svc.failures ?? 0}</TableCell>
-                        <TableCell align="right">{svc.requests ?? 0}</TableCell>
-                        <TableCell align="right">{formatLatency(svc.p95LatencyMs)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </Box>
-            ) : (
-              <Typography variant="body2" color="text.secondary">
-                No pipeline traffic in the last 15 minutes.
-              </Typography>
-            )}
+      {!loading && visibleServices.length === 0 ? (
+        <Typography variant="body2" color="text.secondary">
+          No pipeline traffic in the last 15 minutes.
+        </Typography>
+      ) : null}
 
-            {activeIncidents.length > 0 ? (
-              <Alert severity="warning">Open alerts: {activeIncidents.map((i) => i.id).join(', ')}</Alert>
-            ) : null}
-          </>
-        )}
-      </Stack>
-    </Paper>
+      {activeIncidents.length > 0 ? (
+        <Alert severity="warning" sx={{ mt: visibleServices.length ? 1.5 : 0 }}>
+          Open alerts: {activeIncidents.map((i) => i.id).join(', ')}
+        </Alert>
+      ) : null}
+    </DashboardPanel>
   );
 }

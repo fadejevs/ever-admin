@@ -98,11 +98,47 @@ async function fetchOwnerEmails(ownerIds) {
   return map;
 }
 
+function pickActivityAt(event) {
+  return event?.updated_at || event?.updatedAt || event?.timestamp || event?.created_at || null;
+}
+
+async function fetchRecentRanEvents(limit = 3) {
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .in('status', ['Completed', 'Paused'])
+    .order('updated_at', { ascending: false })
+    .limit(limit);
+
+  if (error) throw new Error(`Failed to read recent events: ${error.message}`);
+
+  const rows = data || [];
+  const workspaceMap = await fetchWorkspaceMap(rows.map((r) => r.workspace_id || r.workspaceId));
+  const ownerIds = [...workspaceMap.values()].map((w) => w.ownerUserId).filter(Boolean);
+  const ownerEmails = await fetchOwnerEmails(ownerIds);
+
+  return rows.map((row) => {
+    const workspace = workspaceMap.get(row.workspace_id || row.workspaceId);
+    const ownerEmail = workspace?.ownerUserId ? ownerEmails.get(workspace.ownerUserId) : null;
+
+    return {
+      id: row.id,
+      title: pickEventTitle(row),
+      status: row.status,
+      ranAt: pickActivityAt(row),
+      workspaceId: row.workspace_id || row.workspaceId || null,
+      workspaceName: workspace?.name || null,
+      customerEmail: ownerEmail || null
+    };
+  });
+}
+
 export async function fetchLiveEvents() {
   const nowMs = Date.now();
-  const [liveResult, activeRoomMap] = await Promise.all([
+  const [liveResult, activeRoomMap, recentEvents] = await Promise.all([
     supabase.from('events').select('*').eq('status', LIVE_STATUS),
-    fetchActiveRoomMap()
+    fetchActiveRoomMap(),
+    fetchRecentRanEvents(3)
   ]);
   const { data, error } = liveResult;
 
@@ -154,6 +190,7 @@ export async function fetchLiveEvents() {
     totalListeners,
     staleLiveCount,
     dbLiveCount: dbLiveRows.length,
+    recentEvents,
     updatedAt: new Date(nowMs).toISOString()
   };
 }

@@ -1,33 +1,55 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import {
   Alert,
   Box,
   Chip,
   CircularProgress,
-  MenuItem,
-  Paper,
-  Select,
   Stack,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography
 } from '@mui/material';
 import ReviewsRoundedIcon from '@mui/icons-material/ReviewsRounded';
 import Rating from '@mui/material/Rating';
 
+import DashboardPanel from '@/components/DashboardPanel';
 import ExpandableTableSection from '@/components/ExpandableTableSection';
 import { fetchUserFeedback } from '@/services/feedbackService';
+
+const AUDIENCE_OPTIONS = {
+  admin: {
+    label: 'Users',
+    description: 'Overall Everspeak experience ratings from event organizers.',
+    emptyMessage: 'No user feedback yet. Prompts appear on the dashboard after completed events.',
+    summaryWorkspaceLabel: 'By workspace',
+    showLanguageBreakdown: false
+  },
+  participant: {
+    label: 'Viewers',
+    description: 'Translation quality ratings from people on the broadcast page.',
+    emptyMessage: 'No viewer feedback yet. Prompts appear when an event ends.',
+    summaryWorkspaceLabel: 'By workspace',
+    showLanguageBreakdown: true
+  }
+};
 
 function formatWhen(iso) {
   if (!iso) return '—';
   try {
-    return new Date(iso).toLocaleString();
+    return new Date(iso).toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
   } catch {
     return '—';
   }
@@ -46,7 +68,7 @@ function SummaryChips({ title, items = [] }) {
           <Chip
             key={item.key}
             size="small"
-            label={`${item.label}: ${item.averageRating ?? '—'}★ (${item.count})`}
+            label={`${item.label} · ${item.averageRating ?? '—'}★ (${item.count})`}
             variant="outlined"
           />
         ))}
@@ -62,6 +84,8 @@ export default function UserFeedbackPanel({ refreshSec = 120, defaultAudience = 
   const [audience, setAudience] = useState(defaultAudience);
   const [tableExpanded, setTableExpanded] = useState(false);
 
+  const audienceMeta = AUDIENCE_OPTIONS[audience] || AUDIENCE_OPTIONS.admin;
+
   const load = useCallback(async () => {
     try {
       setError('');
@@ -76,6 +100,7 @@ export default function UserFeedbackPanel({ refreshSec = 120, defaultAudience = 
   }, [audience]);
 
   useEffect(() => {
+    setLoading(true);
     load();
     if (!refreshSec) return undefined;
     const timer = setInterval(load, refreshSec * 1000);
@@ -84,88 +109,127 @@ export default function UserFeedbackPanel({ refreshSec = 120, defaultAudience = 
 
   const rows = payload?.items || [];
   const summaries = payload?.summaries || { byCustomer: [], byLanguage: [] };
+  const showLanguage = audienceMeta.showLanguageBreakdown;
+  const hasSummaries =
+    summaries.byCustomer.length > 0 || (showLanguage && summaries.byLanguage.length > 0);
 
-  const headline = useMemo(() => {
-    if (!payload) return 'User feedback';
-    const avg = payload.averageRating != null ? `${payload.averageRating}★ avg` : 'No ratings yet';
-    return `User feedback · ${payload.total} responses · ${avg}`;
-  }, [payload]);
+  const handleAudienceChange = (_event, nextAudience) => {
+    if (!nextAudience) return;
+    setAudience(nextAudience);
+    setTableExpanded(false);
+  };
 
   return (
-    <Paper variant="outlined" sx={{ overflow: 'hidden' }}>
-      <Stack spacing={2} sx={{ p: 2 }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }} justifyContent="space-between">
-          <Stack direction="row" spacing={1} alignItems="center">
-            <ReviewsRoundedIcon color="primary" fontSize="small" />
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              {headline}
-            </Typography>
-          </Stack>
-          <Select size="small" value={audience} onChange={(event) => setAudience(event.target.value)} sx={{ minWidth: 160 }}>
-            <MenuItem value="admin">Admin / customer</MenuItem>
-            <MenuItem value="participant">Participant</MenuItem>
-          </Select>
-        </Stack>
-
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
-            <CircularProgress size={24} />
-          </Box>
-        ) : null}
-
-        {error ? <Alert severity="error">{error}</Alert> : null}
-
-        {!loading && !error ? (
-          <Stack spacing={1.5}>
-            <SummaryChips title="By customer" items={summaries.byCustomer} />
-            <SummaryChips title="By language" items={summaries.byLanguage} />
-          </Stack>
-        ) : null}
-      </Stack>
-
-      <ExpandableTableSection
-        count={rows.length}
-        itemLabel="responses"
-        expanded={tableExpanded}
-        onToggle={() => setTableExpanded((value) => !value)}
-        disabled={loading || Boolean(error)}
-      >
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>When</TableCell>
-              <TableCell>Customer</TableCell>
-              <TableCell>Event</TableCell>
-              <TableCell>Language</TableCell>
-              <TableCell>Rating</TableCell>
-              <TableCell>Comment</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.map((row) => (
-              <TableRow key={row.id} hover>
-                <TableCell>{formatWhen(row.created_at)}</TableCell>
-                <TableCell>{row.workspace_name || row.workspace_id || '—'}</TableCell>
-                <TableCell>{row.event_title || row.event_id || '—'}</TableCell>
-                <TableCell>{row.language_code || '—'}</TableCell>
-                <TableCell>
-                  <Rating value={row.rating} readOnly size="small" />
-                </TableCell>
-                <TableCell sx={{ maxWidth: 280, whiteSpace: 'normal' }}>{row.comment || '—'}</TableCell>
-              </TableRow>
-            ))}
-            {!rows.length ? (
-              <TableRow>
-                <TableCell colSpan={6}>
-                  <Typography variant="body2" color="text.secondary">
-                    No feedback collected yet.
-                  </Typography>
-                </TableCell>
-              </TableRow>
+    <DashboardPanel
+      title="Feedback"
+      subtitle={audienceMeta.description}
+      icon={ReviewsRoundedIcon}
+      iconTone="feedback"
+      actions={
+        <ToggleButtonGroup
+          size="small"
+          exclusive
+          value={audience}
+          onChange={handleAudienceChange}
+          aria-label="Feedback audience"
+        >
+          <ToggleButton value="admin" sx={{ textTransform: 'none', px: 1.75 }}>
+            Users
+          </ToggleButton>
+          <ToggleButton value="participant" sx={{ textTransform: 'none', px: 1.75 }}>
+            Viewers
+          </ToggleButton>
+        </ToggleButtonGroup>
+      }
+      chips={
+        payload && !loading ? (
+          <>
+            <Chip size="small" label={`${payload.total} response${payload.total === 1 ? '' : 's'}`} variant="outlined" />
+            {payload.averageRating != null ? (
+              <Chip
+                size="small"
+                label={`${payload.averageRating}★ average`}
+                color="primary"
+                variant="outlined"
+              />
             ) : null}
-          </TableBody>
-        </Table>
-      </ExpandableTableSection>
-    </Paper>
+          </>
+        ) : null
+      }
+      footer={refreshSec ? `Refreshes every ${refreshSec}s` : null}
+      footerSlot={
+        <ExpandableTableSection
+          count={rows.length}
+          itemLabel="responses"
+          expanded={tableExpanded}
+          onToggle={() => setTableExpanded((value) => !value)}
+          disabled={loading || Boolean(error)}
+        >
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Submitted</TableCell>
+                <TableCell>Workspace</TableCell>
+                <TableCell>Event</TableCell>
+                {showLanguage ? <TableCell>Language</TableCell> : null}
+                <TableCell>Rating</TableCell>
+                <TableCell>Comment</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.map((row) => (
+                <TableRow key={row.id} hover>
+                  <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatWhen(row.created_at)}</TableCell>
+                  <TableCell>{row.workspace_name || row.workspace_id || '—'}</TableCell>
+                  <TableCell>{row.event_title || row.event_id || '—'}</TableCell>
+                  {showLanguage ? <TableCell>{row.language_code || '—'}</TableCell> : null}
+                  <TableCell>
+                    <Rating value={row.rating} readOnly size="small" />
+                  </TableCell>
+                  <TableCell sx={{ maxWidth: 280, whiteSpace: 'normal' }}>{row.comment || '—'}</TableCell>
+                </TableRow>
+              ))}
+              {!rows.length ? (
+                <TableRow>
+                  <TableCell colSpan={showLanguage ? 6 : 5}>
+                    <Typography variant="body2" color="text.secondary">
+                      {audienceMeta.emptyMessage}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : null}
+            </TableBody>
+          </Table>
+        </ExpandableTableSection>
+      }
+    >
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+          <CircularProgress size={24} />
+        </Box>
+      ) : null}
+
+      {error ? <Alert severity="error">{error}</Alert> : null}
+
+      {!loading && !error && hasSummaries ? (
+        <Stack
+          spacing={1.5}
+          sx={{
+            p: 1.5,
+            borderRadius: 2,
+            bgcolor: 'grey.50',
+            border: '1px solid',
+            borderColor: 'divider'
+          }}
+        >
+          <SummaryChips title={audienceMeta.summaryWorkspaceLabel} items={summaries.byCustomer} />
+          {showLanguage ? <SummaryChips title="By language" items={summaries.byLanguage} /> : null}
+        </Stack>
+      ) : null}
+
+      {!loading && !error && !rows.length ? (
+        <Alert severity="info">{audienceMeta.emptyMessage}</Alert>
+      ) : null}
+    </DashboardPanel>
   );
 }

@@ -2,21 +2,19 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Box, Chip, CircularProgress, Stack, Typography } from '@mui/material';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
 import { fetchHealthSummary } from '@/services/metricsService';
+import DashboardPanel from '@/components/DashboardPanel';
 
 const DEGRADED_ERROR_RATE_PCT = 5;
 const DEGRADED_P95_MS = 5000;
 const LATENCY_TARGET_LABEL = '5 s';
 
 const STATUS_META = {
-  healthy: { label: 'Healthy', color: 'success', Icon: CheckCircleOutlineIcon },
-  degraded: { label: 'Degraded', color: 'warning', Icon: WarningAmberIcon },
-  critical: { label: 'Critical', color: 'error', Icon: ErrorOutlineIcon },
-  unknown: { label: 'No recent data', color: 'default', Icon: HelpOutlineIcon }
+  healthy: { label: 'Healthy', color: 'success', accent: 'success' },
+  degraded: { label: 'Degraded', color: 'warning', accent: 'warning' },
+  critical: { label: 'Critical', color: 'error', accent: 'error' },
+  unknown: { label: 'No recent data', color: 'default', accent: 'info' }
 };
 
 function formatUpdatedAt(iso) {
@@ -84,57 +82,49 @@ export default function PlatformHealthIndicator({ refreshSec = 20 }) {
     return () => clearInterval(timer);
   }, [load, refreshSec]);
 
-  if (loading || !health) {
-    return (
-      <Alert severity="info" icon={<CircularProgress size={18} />} sx={{ borderRadius: 2 }}>
-        Loading pipeline health…
-      </Alert>
-    );
-  }
-
-  if (health?.offline) {
-    return (
-      <Alert severity="warning" sx={{ borderRadius: 2 }}>
-        Pipeline health unavailable
-      </Alert>
-    );
-  }
-
-  if (error && !health?.offline) {
-    return (
-      <Alert severity="warning" sx={{ borderRadius: 2 }}>
-        Pipeline health unavailable
-      </Alert>
-    );
-  }
-
   const status = health?.status || 'unknown';
   const meta = STATUS_META[status] || STATUS_META.unknown;
-  const StatusIcon = meta.Icon;
-  const alertSeverity = status === 'critical' ? 'error' : status === 'degraded' ? 'warning' : status === 'healthy' ? 'success' : 'info';
 
   return (
-    <Alert
-      severity={alertSeverity}
-      icon={<StatusIcon fontSize="inherit" />}
-      sx={{ borderRadius: 2, alignItems: 'flex-start' }}
-    >
-      <Stack spacing={0.75}>
-        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-            Pipeline health
-          </Typography>
+    <DashboardPanel
+      title="Pipeline health"
+      subtitle={health ? describeStatus(health) : 'Translation, ASR, and TTS request quality.'}
+      icon={MonitorHeartOutlinedIcon}
+      iconTone="pipeline"
+      accent={health ? meta.accent : null}
+      chips={
+        <>
           <Chip size="small" label="Translation · ASR · TTS" variant="outlined" />
-          <Chip size="small" label={meta.label} color={meta.color} variant={status === 'unknown' ? 'outlined' : 'filled'} />
+          {health ? (
+            <Chip size="small" label={meta.label} color={meta.color} variant={status === 'unknown' ? 'outlined' : 'filled'} />
+          ) : null}
+        </>
+      }
+      footer={health ? `Updated ${formatUpdatedAt(health?.updatedAt)} · refreshes every ${refreshSec}s` : null}
+    >
+      {loading && !health ? (
+        <Stack direction="row" spacing={1} alignItems="center">
+          <CircularProgress size={18} />
+          <Typography variant="body2">Loading pipeline health…</Typography>
         </Stack>
-        <Typography variant="body2">{describeStatus(health)}</Typography>
+      ) : null}
+
+      {health?.offline ? <Alert severity="warning">Pipeline health unavailable</Alert> : null}
+
+      {error && !health?.offline ? <Alert severity="warning">Pipeline health unavailable</Alert> : null}
+
+      {health && !health.offline ? (
         <Box
           sx={{
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', sm: 'max-content 1fr' },
             columnGap: 2,
-            rowGap: 0.5,
-            mt: 0.25
+            rowGap: 0.75,
+            p: 1.5,
+            borderRadius: 2,
+            bgcolor: 'grey.50',
+            border: '1px solid',
+            borderColor: 'divider'
           }}
         >
           <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600 }}>
@@ -163,10 +153,7 @@ export default function PlatformHealthIndicator({ refreshSec = 20 }) {
             {(health?.p95LatencyMs ?? 0) >= DEGRADED_P95_MS ? ` (above ${LATENCY_TARGET_LABEL} target)` : ''}
           </Typography>
         </Box>
-        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-          Updated {formatUpdatedAt(health?.updatedAt)} · refreshes every {refreshSec}s
-        </Typography>
-      </Stack>
-    </Alert>
+      ) : null}
+    </DashboardPanel>
   );
 }
