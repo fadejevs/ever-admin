@@ -31,13 +31,11 @@ export default function RoiDashboard() {
           </Box>
 
           <DashboardSection
-            title="Operations & revenue"
-            description="Live events, workspace usage, and Stripe billing."
+            title="Live events"
+            description="Currently live sessions and the most recent completed or paused events."
             showDivider={false}
           >
             <LiveEventsPanel />
-            <EventUsagePanel />
-            <StripeRevenuePanel />
           </DashboardSection>
 
           <DashboardSection
@@ -46,6 +44,11 @@ export default function RoiDashboard() {
           >
             <PlatformHealthIndicator />
             <MonitoringAlertsPanel />
+          </DashboardSection>
+
+          <DashboardSection title="Usage & revenue" description="Workspace usage and Stripe billing.">
+            <EventUsagePanel />
+            <StripeRevenuePanel />
           </DashboardSection>
 
           <DashboardSection title="Feedback" description="Organizer and viewer ratings after events.">
