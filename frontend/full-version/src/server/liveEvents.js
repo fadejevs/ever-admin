@@ -102,6 +102,94 @@ function pickActivityAt(event) {
   return event?.updated_at || event?.updatedAt || event?.timestamp || event?.created_at || null;
 }
 
+/** Parse events.timestamp (YYYY-MM-DD, DD.MM.YYYY, or Date-parseable). */
+function parseEventDate(timestamp) {
+  const raw = String(timestamp || '').trim();
+  if (!raw || raw.toLowerCase() === 'not specified') return null;
+
+  let match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match) {
+    return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  }
+
+  match = raw.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if (match) {
+    return new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
+  }
+
+  const parsed = Date.parse(raw);
+  if (!Number.isFinite(parsed)) return null;
+  const date = new Date(parsed);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function parseStartTimeMinutes(startTime) {
+  const match = String(startTime || '')
+    .trim()
+    .match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes) || hours > 23 || minutes > 59) return null;
+  return hours * 60 + minutes;
+}
+
+function startOfLocalDay(date = new Date()) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function toDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function enrichScheduledRow(row, workspaceMap, ownerEmails) {
+  const workspace = workspaceMap.get(row.workspace_id || row.workspaceId);
+  const ownerEmail = workspace?.ownerUserId ? ownerEmails.get(workspace.ownerUserId) : null;
+  const date = parseEventDate(row.timestamp);
+  const startTime = row.startTime || row.start_time || null;
+  const timeMinutes = parseStartTimeMinutes(startTime);
+  const dayStart = date ? startOfLocalDay(date).getTime() : null;
+
+  return {
+    id: row.id,
+    title: pickEventTitle(row),
+    status: row.status,
+    scheduledDate: date ? toDateKey(date) : null,
+    scheduledTime: startTime || null,
+    sortKey: dayStart == null ? Number.POSITIVE_INFINITY : dayStart + (timeMinutes == null ? 0 : timeMinutes * 60_000),
+    workspaceId: row.workspace_id || row.workspaceId || null,
+    workspaceName: workspace?.name || null,
+    customerEmail: ownerEmail || null
+  };
+}
+
+async function fetchUpcomingScheduledEvents(limit = 8, now = new Date()) {
+  const { data, error } = await supabase.from('events').select('*').eq('status', 'Scheduled').limit(200);
+
+  if (error) throw new Error(`Failed to read scheduled events: ${error.message}`);
+
+  const rows = data || [];
+  const workspaceMap = await fetchWorkspaceMap(rows.map((r) => r.workspace_id || r.workspaceId));
+  const ownerIds = [...workspaceMap.values()].map((w) => w.ownerUserId).filter(Boolean);
+  const ownerEmails = await fetchOwnerEmails(ownerIds);
+  const today = startOfLocalDay(now).getTime();
+
+  return rows
+    .map((row) => enrichScheduledRow(row, workspaceMap, ownerEmails))
+    .filter((row) => {
+      if (!row.scheduledDate) return false;
+      const [year, month, day] = row.scheduledDate.split('-').map(Number);
+      const dayStart = new Date(year, month - 1, day).getTime();
+      return dayStart >= today;
+    })
+    .sort((a, b) => a.sortKey - b.sortKey)
+    .slice(0, limit)
+    .map(({ sortKey: _sortKey, ...row }) => row);
+}
+
 async function fetchRecentRanEvents(limit = 3) {
   const { data, error } = await supabase
     .from('events')
@@ -135,10 +223,11 @@ async function fetchRecentRanEvents(limit = 3) {
 
 export async function fetchLiveEvents() {
   const nowMs = Date.now();
-  const [liveResult, activeRoomMap, recentEvents] = await Promise.all([
+  const [liveResult, activeRoomMap, recentEvents, upcomingEvents] = await Promise.all([
     supabase.from('events').select('*').eq('status', LIVE_STATUS),
     fetchActiveRoomMap(),
-    fetchRecentRanEvents(3)
+    fetchRecentRanEvents(3),
+    fetchUpcomingScheduledEvents(8, new Date(nowMs))
   ]);
   const { data, error } = liveResult;
 
@@ -191,6 +280,7 @@ export async function fetchLiveEvents() {
     staleLiveCount,
     dbLiveCount: dbLiveRows.length,
     recentEvents,
+    upcomingEvents,
     updatedAt: new Date(nowMs).toISOString()
   };
 }

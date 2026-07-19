@@ -32,7 +32,7 @@ export default function RoiDashboard() {
 
           <DashboardSection
             title="Live events"
-            description="Currently live sessions and the most recent completed or paused events."
+            description="Currently live sessions, upcoming scheduled events, and the most recent completed or paused runs."
             showDivider={false}
           >
             <LiveEventsPanel />

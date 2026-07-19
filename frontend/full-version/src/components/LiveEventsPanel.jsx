@@ -34,6 +34,40 @@ function formatWhen(iso) {
   }
 }
 
+function formatScheduledWhen(dateKey, time) {
+  if (!dateKey) return '—';
+  const [year, month, day] = String(dateKey).split('-').map(Number);
+  if (!year || !month || !day) return dateKey;
+
+  let dateLabel = dateKey;
+  try {
+    dateLabel = new Date(year, month - 1, day).toLocaleDateString(undefined, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  } catch {
+    // keep raw key
+  }
+
+  const timeLabel = String(time || '').trim();
+  if (!timeLabel) return dateLabel;
+
+  const match = timeLabel.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return `${dateLabel} · ${timeLabel}`;
+
+  try {
+    const formattedTime = new Date(year, month - 1, day, Number(match[1]), Number(match[2])).toLocaleTimeString(undefined, {
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+    return `${dateLabel} · ${formattedTime}`;
+  } catch {
+    return `${dateLabel} · ${timeLabel}`;
+  }
+}
+
 function formatDuration(ms) {
   if (ms == null || !Number.isFinite(ms)) return '—';
   const totalSec = Math.floor(ms / 1000);
@@ -84,6 +118,7 @@ export default function LiveEventsPanel({ refreshSec = 10 }) {
 
   const events = payload?.events || [];
   const recentEvents = payload?.recentEvents || [];
+  const upcomingEvents = payload?.upcomingEvents || [];
   const totalListeners = payload?.totalListeners ?? events.reduce((sum, e) => sum + (e.viewerCount ?? 0), 0);
   const updatedLabel = useMemo(() => {
     if (!payload?.updatedAt) return '—';
@@ -97,7 +132,7 @@ export default function LiveEventsPanel({ refreshSec = 10 }) {
   return (
     <DashboardPanel
       title="Live events now"
-      subtitle="Active broadcast sessions and listener counts."
+      subtitle="Active broadcasts, upcoming scheduled dates, and recent runs."
       icon={SensorsRoundedIcon}
       iconTone="live"
       accent={events.length ? 'error' : null}
@@ -195,6 +230,51 @@ export default function LiveEventsPanel({ refreshSec = 10 }) {
         <Typography variant="caption" color="warning.main" sx={{ display: 'block', mt: 1 }}>
           Last refresh failed: {error}
         </Typography>
+      ) : null}
+
+      {payload ? (
+        <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontWeight: 600 }}>
+            Upcoming scheduled{upcomingEvents.length ? ` · ${upcomingEvents.length}` : ''}
+          </Typography>
+          {upcomingEvents.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              No events scheduled for a future date.
+            </Typography>
+          ) : (
+            <Stack spacing={1}>
+              {upcomingEvents.map((event) => (
+                <Stack
+                  key={event.id}
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={{ xs: 0.25, sm: 1 }}
+                  justifyContent="space-between"
+                  alignItems={{ sm: 'center' }}
+                  sx={{
+                    py: 0.75,
+                    px: 1,
+                    borderRadius: 1.5,
+                    bgcolor: 'grey.50',
+                    border: '1px solid',
+                    borderColor: 'divider'
+                  }}
+                >
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
+                      {event.title}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" noWrap>
+                      {event.workspaceName || event.customerEmail || event.workspaceId || '—'}
+                    </Typography>
+                  </Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
+                    {formatScheduledWhen(event.scheduledDate, event.scheduledTime)}
+                  </Typography>
+                </Stack>
+              ))}
+            </Stack>
+          )}
+        </Box>
       ) : null}
 
       {recentEvents.length > 0 ? (
