@@ -25,7 +25,6 @@ function formatWhen(iso) {
     return new Date(iso).toLocaleString(undefined, {
       month: 'short',
       day: 'numeric',
-      year: 'numeric',
       hour: 'numeric',
       minute: '2-digit'
     });
@@ -44,8 +43,7 @@ function formatScheduledWhen(dateKey, time) {
     dateLabel = new Date(year, month - 1, day).toLocaleDateString(undefined, {
       weekday: 'short',
       month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+      day: 'numeric'
     });
   } catch {
     // keep raw key
@@ -79,10 +77,10 @@ function formatDuration(ms) {
 }
 
 function formatLangs(source = [], target = []) {
-  const parts = [];
-  if (source.length) parts.push(`SRC: ${source.join(', ')}`);
-  if (target.length) parts.push(`TGT: ${target.join(', ')}`);
-  return parts.join(' · ') || '—';
+  const src = source.filter(Boolean).join(', ');
+  const tgt = target.filter(Boolean).join(', ');
+  if (src && tgt) return `${src} → ${tgt}`;
+  return src || tgt || '—';
 }
 
 function broadcastUrl(eventId) {
@@ -91,6 +89,59 @@ function broadcastUrl(eventId) {
     ''
   );
   return `${base}/broadcast/${eventId}`;
+}
+
+function SideList({ title, empty, children }) {
+  return (
+    <Box
+      sx={{
+        minWidth: 0,
+        p: 1.5,
+        borderRadius: 2,
+        border: '1px solid',
+        borderColor: 'divider',
+        bgcolor: 'grey.50'
+      }}
+    >
+      <Typography
+        variant="caption"
+        sx={{ display: 'block', mb: 1, fontWeight: 700, letterSpacing: '0.02em', color: 'text.secondary', textTransform: 'uppercase' }}
+      >
+        {title}
+      </Typography>
+      {children || (
+        <Typography variant="body2" color="text.secondary">
+          {empty}
+        </Typography>
+      )}
+    </Box>
+  );
+}
+
+function CompactRow({ title, meta, right }) {
+  return (
+    <Stack
+      direction="row"
+      spacing={1}
+      justifyContent="space-between"
+      alignItems="baseline"
+      sx={{ py: 0.65, borderBottom: '1px solid', borderColor: 'divider', '&:last-child': { borderBottom: 0, pb: 0 } }}
+    >
+      <Box sx={{ minWidth: 0 }}>
+        <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
+          {title}
+        </Typography>
+        {meta ? (
+          <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+            {meta}
+          </Typography>
+        ) : null}
+      </Box>
+      <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
+        {right}
+      </Typography>
+    </Stack>
+  );
 }
 
 export default function LiveEventsPanel({ refreshSec = 10 }) {
@@ -131,8 +182,8 @@ export default function LiveEventsPanel({ refreshSec = 10 }) {
 
   return (
     <DashboardPanel
-      title="Live events now"
-      subtitle="Active broadcasts, upcoming scheduled dates, and recent runs."
+      title="Live now"
+      subtitle="Active broadcasts — jump to the room or scan what’s next."
       icon={SensorsRoundedIcon}
       iconTone="live"
       accent={events.length ? 'error' : null}
@@ -147,14 +198,17 @@ export default function LiveEventsPanel({ refreshSec = 10 }) {
           {events.length > 0 ? (
             <Chip size="small" label={`${totalListeners} listeners`} color="primary" variant="outlined" />
           ) : null}
+          {upcomingEvents.length > 0 ? (
+            <Chip size="small" label={`${upcomingEvents.length} upcoming`} variant="outlined" />
+          ) : null}
         </>
       }
-      footer={`Updated ${updatedLabel} · refresh every ${refreshSec}s · listeners = broadcast viewers (excludes host)`}
+      footer={`Updated ${updatedLabel} · every ${refreshSec}s`}
     >
       {loading && !payload ? (
         <Stack direction="row" spacing={1} alignItems="center">
           <CircularProgress size={18} />
-          <Typography variant="body2">Loading live events…</Typography>
+          <Typography variant="body2">Loading…</Typography>
         </Stack>
       ) : null}
 
@@ -163,7 +217,7 @@ export default function LiveEventsPanel({ refreshSec = 10 }) {
       {!loading && !error && events.length === 0 ? (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
           {payload?.staleLiveCount
-            ? `No events have active connections right now (${payload.staleLiveCount} stuck as Live in DB).`
+            ? `Nothing connected right now (${payload.staleLiveCount} stuck as Live in DB).`
             : 'No events are live right now.'}
         </Alert>
       ) : null}
@@ -174,11 +228,11 @@ export default function LiveEventsPanel({ refreshSec = 10 }) {
             <TableHead>
               <TableRow>
                 <TableCell>Event</TableCell>
-                <TableCell>Customer / workspace</TableCell>
-                <TableCell>Languages</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Workspace</TableCell>
+                <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' } }}>Languages</TableCell>
                 <TableCell align="right">Listeners</TableCell>
                 <TableCell>Live for</TableCell>
-                <TableCell align="right">Open</TableCell>
+                <TableCell align="right" />
               </TableRow>
             </TableHead>
             <TableBody>
@@ -188,17 +242,17 @@ export default function LiveEventsPanel({ refreshSec = 10 }) {
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       {event.title}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {event.id}
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: { md: 'none' } }}>
+                      {event.workspaceName || event.customerEmail || '—'}
                     </Typography>
                   </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">{event.customerEmail || '—'}</Typography>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                    <Typography variant="body2">{event.workspaceName || '—'}</Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {event.workspaceName || event.workspaceId || '—'}
+                      {event.customerEmail || event.workspaceId || '—'}
                     </Typography>
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' } }}>
                     <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
                       {formatLangs(event.sourceLanguages, event.targetLanguages)}
                     </Typography>
@@ -207,16 +261,11 @@ export default function LiveEventsPanel({ refreshSec = 10 }) {
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       {event.viewerCount ?? 0}
                     </Typography>
-                    {(event.adminCount ?? 0) > 0 ? (
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        +{event.adminCount} host
-                      </Typography>
-                    ) : null}
                   </TableCell>
                   <TableCell>{formatDuration(event.liveDurationMs)}</TableCell>
                   <TableCell align="right">
                     <Link href={broadcastUrl(event.id)} target="_blank" rel="noopener noreferrer" underline="hover">
-                      Broadcast
+                      Open
                     </Link>
                   </TableCell>
                 </TableRow>
@@ -233,86 +282,46 @@ export default function LiveEventsPanel({ refreshSec = 10 }) {
       ) : null}
 
       {payload ? (
-        <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontWeight: 600 }}>
-            Upcoming scheduled{upcomingEvents.length ? ` · ${upcomingEvents.length}` : ''}
-          </Typography>
-          {upcomingEvents.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
-              No events scheduled for a future date.
-            </Typography>
-          ) : (
-            <Stack spacing={1}>
-              {upcomingEvents.map((event) => (
-                <Stack
-                  key={event.id}
-                  direction={{ xs: 'column', sm: 'row' }}
-                  spacing={{ xs: 0.25, sm: 1 }}
-                  justifyContent="space-between"
-                  alignItems={{ sm: 'center' }}
-                  sx={{
-                    py: 0.75,
-                    px: 1,
-                    borderRadius: 1.5,
-                    bgcolor: 'grey.50',
-                    border: '1px solid',
-                    borderColor: 'divider'
-                  }}
-                >
-                  <Box sx={{ minWidth: 0 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
-                      {event.title}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" noWrap>
-                      {event.workspaceName || event.customerEmail || event.workspaceId || '—'}
-                    </Typography>
-                  </Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
-                    {formatScheduledWhen(event.scheduledDate, event.scheduledTime)}
-                  </Typography>
-                </Stack>
-              ))}
-            </Stack>
-          )}
-        </Box>
-      ) : null}
-
-      {recentEvents.length > 0 ? (
-        <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontWeight: 600 }}>
-            Last {recentEvents.length} event{recentEvents.length === 1 ? '' : 's'} run
-          </Typography>
-          <Stack spacing={1}>
-            {recentEvents.map((event) => (
-              <Stack
-                key={event.id}
-                direction={{ xs: 'column', sm: 'row' }}
-                spacing={{ xs: 0.25, sm: 1 }}
-                justifyContent="space-between"
-                alignItems={{ sm: 'center' }}
-                sx={{
-                  py: 0.75,
-                  px: 1,
-                  borderRadius: 1.5,
-                  bgcolor: 'grey.50',
-                  border: '1px solid',
-                  borderColor: 'divider'
-                }}
-              >
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
-                    {event.title}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" noWrap>
-                    {event.workspaceName || event.customerEmail || event.workspaceId || '—'} · {event.status}
-                  </Typography>
-                </Box>
-                <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
-                  {formatWhen(event.ranAt)}
-                </Typography>
+        <Box
+          sx={{
+            mt: 2,
+            pt: 2,
+            borderTop: 1,
+            borderColor: 'divider',
+            display: 'grid',
+            gap: 1.5,
+            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }
+          }}
+        >
+          <SideList title={`Upcoming${upcomingEvents.length ? ` · ${upcomingEvents.length}` : ''}`} empty="Nothing scheduled ahead.">
+            {upcomingEvents.length > 0 ? (
+              <Stack>
+                {upcomingEvents.map((event) => (
+                  <CompactRow
+                    key={event.id}
+                    title={event.title}
+                    meta={event.workspaceName || event.customerEmail || event.workspaceId || '—'}
+                    right={formatScheduledWhen(event.scheduledDate, event.scheduledTime)}
+                  />
+                ))}
               </Stack>
-            ))}
-          </Stack>
+            ) : null}
+          </SideList>
+
+          <SideList title={`Recent${recentEvents.length ? ` · ${recentEvents.length}` : ''}`} empty="No recent runs.">
+            {recentEvents.length > 0 ? (
+              <Stack>
+                {recentEvents.map((event) => (
+                  <CompactRow
+                    key={event.id}
+                    title={event.title}
+                    meta={`${event.workspaceName || event.customerEmail || event.workspaceId || '—'} · ${event.status}`}
+                    right={formatWhen(event.ranAt)}
+                  />
+                ))}
+              </Stack>
+            ) : null}
+          </SideList>
         </Box>
       ) : null}
     </DashboardPanel>

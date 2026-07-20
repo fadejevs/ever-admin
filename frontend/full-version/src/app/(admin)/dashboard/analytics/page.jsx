@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
+import DashboardAnalytics from '@/views/admin/dashboard/analytics';
 
 export default function AnalyticsIndex() {
-  redirect('/dashboard/analytics/metrics');
+  return <DashboardAnalytics />;
 }

@@ -19,7 +19,7 @@ const manage = {
       // title: <FormattedMessage id="Dashboard" />,
       title: <FormattedMessage id="Analytics" />,
       type: 'item',
-      url: '/dashboard/analytics/metrics',
+      url: '/dashboard/analytics',
       // icon: 'IconLayoutGrid'
       icon: 'IconStack2'
     }

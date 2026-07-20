@@ -1,13 +1,6 @@
-import PropTypes from 'prop-types';
-import DashboardAnalytics from '@/views/admin/dashboard/analytics';
+import { redirect } from 'next/navigation';
 
-export default async function AnalyticsTabPage({ params }) {
-  const { tab } = await params;
-  return <DashboardAnalytics tab={tab || 'metrics'} />;
+/** Old Metrics / Benchmarks / Finances tab URLs collapse onto Analytics. */
+export default function AnalyticsTabPage() {
+  redirect('/dashboard/analytics');
 }
-
-export async function generateStaticParams() {
-  return [{ tab: 'metrics' }, { tab: 'benchmarks' }, { tab: 'finances' }];
-}
-
-AnalyticsTabPage.propTypes = { params: PropTypes.object };

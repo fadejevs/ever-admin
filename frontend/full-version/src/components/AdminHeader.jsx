@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 // @mui
 import AppBar from '@mui/material/AppBar';
@@ -11,18 +12,26 @@ import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import PersonIcon from '@mui/icons-material/Person';
 
 // @project
 import { supabase } from '@/utils/supabase/client';
 import LogoSection from '@/components/logo';
 
+const NAV_ITEMS = [
+  { label: 'Ops', href: '/dashboard', match: (path) => path === '/dashboard' || path === '/dashboard/' },
+  {
+    label: 'Analytics',
+    href: '/dashboard/analytics',
+    match: (path) => path.startsWith('/dashboard/analytics')
+  }
+];
+
 export default function AdminHeader() {
   const router = useRouter();
+  const pathname = usePathname() || '';
   const [user, setUser] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -39,7 +48,7 @@ export default function AdminHeader() {
 
     const {
       data: { subscription }
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
     });
 
@@ -71,6 +80,7 @@ export default function AdminHeader() {
   return (
     <AppBar
       position="fixed"
+      elevation={0}
       sx={{
         zIndex: 1200,
         backgroundColor: 'background.paper',
@@ -78,18 +88,56 @@ export default function AdminHeader() {
         borderColor: 'divider'
       }}
     >
-      <Toolbar sx={{ minHeight: 64, px: { xs: 2, sm: 3 } }}>
-        <Box sx={{ flexGrow: 1 }}>
+      <Toolbar sx={{ minHeight: 64, px: { xs: 2, sm: 3 }, gap: 2 }}>
+        <Box sx={{ flexShrink: 0 }}>
           <LogoSection to="/dashboard" />
         </Box>
 
+        <Stack
+          direction="row"
+          spacing={0.5}
+          alignItems="center"
+          sx={{ flexGrow: 1, minWidth: 0, ml: { xs: 1, sm: 2 } }}
+        >
+          {NAV_ITEMS.map((item) => {
+            const active = item.match(pathname);
+            return (
+              <Button
+                key={item.href}
+                component={Link}
+                href={item.href}
+                size="small"
+                color={active ? 'primary' : 'inherit'}
+                variant={active ? 'contained' : 'text'}
+                sx={{
+                  minWidth: 0,
+                  px: 1.5,
+                  py: 0.6,
+                  borderRadius: 2,
+                  fontWeight: active ? 700 : 600,
+                  textTransform: 'none',
+                  color: active ? undefined : 'text.secondary',
+                  boxShadow: 'none',
+                  '&:hover': { boxShadow: 'none' }
+                }}
+              >
+                {item.label}
+              </Button>
+            );
+          })}
+        </Stack>
+
         {user && (
-          <Stack direction="row" spacing={2} alignItems="center">
+          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ flexShrink: 0 }}>
             <Typography
               variant="body2"
               sx={{
                 color: 'text.secondary',
-                display: { xs: 'none', sm: 'block' }
+                display: { xs: 'none', md: 'block' },
+                maxWidth: 220,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
               }}
             >
               {user.email}
@@ -97,9 +145,10 @@ export default function AdminHeader() {
 
             <Button
               onClick={handleMenuClick}
+              aria-label="Account menu"
               sx={{
                 minWidth: 'auto',
-                p: 1,
+                p: 0.5,
                 borderRadius: '50%',
                 '&:hover': {
                   backgroundColor: 'action.hover'
