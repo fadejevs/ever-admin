@@ -110,12 +110,49 @@ export async function fetchBenchmarks(params = {}) {
 
 export async function fetchExpenses(params = {}) {
   try {
-    const { data } = await client.get('/api/expenses', { params });
+    const headers = await getAdminAuthHeaders();
+    const { data } = await client.get('/api/roi/expenses', { params, headers });
     return data;
   } catch (error) {
     console.error('fetchExpenses error:', error?.response?.data || error?.message || error);
     throw error;
   }
+}
+
+export async function extractRoiInvoice(file) {
+  const headers = await getAdminAuthHeaders();
+  const form = new FormData();
+  form.append('file', file);
+  const { data } = await client.post('/api/roi/expenses/extract', form, {
+    headers,
+    timeout: 120000
+  });
+  return data;
+}
+
+export async function createRoiExpense(payload, file = null) {
+  const headers = await getAdminAuthHeaders();
+  if (file) {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('payload', JSON.stringify(payload));
+    const { data } = await client.post('/api/roi/expenses', form, { headers, timeout: 60000 });
+    return data;
+  }
+  const { data } = await client.post('/api/roi/expenses', payload, { headers });
+  return data;
+}
+
+export async function updateRoiExpense(id, payload) {
+  const headers = await getAdminAuthHeaders();
+  const { data } = await client.patch(`/api/roi/expenses/${id}`, payload, { headers });
+  return data;
+}
+
+export async function deleteRoiExpense(id) {
+  const headers = await getAdminAuthHeaders();
+  const { data } = await client.delete(`/api/roi/expenses/${id}`, { headers });
+  return data;
 }
 
 export async function fetchUserPayments(params = {}) {

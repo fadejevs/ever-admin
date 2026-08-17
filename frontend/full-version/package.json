@@ -56,7 +56,8 @@
     "socket.io-client": "^4.8.1",
     "stylis": "4.3.4",
     "stylis-plugin-rtl": "2.1.1",
-    "swr": "2.2.5"
+    "swr": "2.2.5",
+    "unpdf": "^1.8.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "3.2.0",

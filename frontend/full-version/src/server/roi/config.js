@@ -97,6 +97,7 @@ export function getRoiConfig() {
   const openAiCostsEnabled = String(process.env.ROI_OPENAI_COSTS_ENABLED || 'false').toLowerCase() === 'true';
   const openAiUsdToEur = Number.parseFloat(process.env.ROI_OPENAI_USD_TO_EUR || '0.92');
   const freeTierMonthlyValue = Number.parseFloat(process.env.ROI_FREE_TIER_MONTHLY_VALUE || '0');
+  const vendorExpenses = parseJsonArray(process.env.ROI_VENDOR_EXPENSES_JSON, []);
 
   return {
     planPrices,
@@ -114,6 +115,8 @@ export function getRoiConfig() {
       usdToEur: Number.isFinite(openAiUsdToEur) ? openAiUsdToEur : 0.92,
       apiKey: process.env.OPENAI_ADMIN_API_KEY || process.env.OPENAI_API_KEY || ''
     },
+    /** Manual vendor invoices/expenses — see vendorCosts.js for entry shapes. */
+    vendorExpenses,
     freeTierMonthlyValue: Number.isFinite(freeTierMonthlyValue) ? freeTierMonthlyValue : 0,
     cacheTtlMs: parsePositiveInt(process.env.ROI_CACHE_TTL_SECONDS, 600) * 1000
   };

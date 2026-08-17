@@ -4,10 +4,14 @@ import { Box, Button, Stack, Typography } from '@mui/material';
 import StripeRevenuePanel from '@/components/StripeRevenuePanel';
 import EventUsagePanel from '@/components/EventUsagePanel';
 import UserFeedbackPanel from '@/components/UserFeedbackPanel';
+import RoiSummaryPanel from '@/components/RoiSummaryPanel';
+import ExpensesPanel from '@/components/ExpensesPanel';
 import DashboardSection from '@/components/DashboardSection';
 
 const JUMP_LINKS = [
   { id: 'usage-revenue', label: 'Usage' },
+  { id: 'roi', label: 'ROI' },
+  { id: 'expenses', label: 'Expenses' },
   { id: 'feedback', label: 'Feedback' }
 ];
 
@@ -23,7 +27,7 @@ export default function DashboardAnalytics() {
     <Box
       sx={{
         minHeight: '100%',
-        bgcolor: '#F4F6F8',
+        bgcolor: 'background.default',
         py: { xs: 2, md: 2.5 },
         px: { xs: 2, md: 3 }
       }}
@@ -36,7 +40,7 @@ export default function DashboardAnalytics() {
               position: 'sticky',
               top: 64,
               zIndex: 10,
-              bgcolor: '#F4F6F8',
+              bgcolor: 'background.default',
               pt: 0.5,
               mx: { xs: -0.5, sm: 0 },
               px: { xs: 0.5, sm: 0 }
@@ -53,7 +57,7 @@ export default function DashboardAnalytics() {
                   Analytics
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
-                  Usage, revenue, and customer feedback.
+                  Usage, revenue, ROI, vendor expenses, and customer feedback.
                 </Typography>
               </Box>
               <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
@@ -100,6 +104,22 @@ export default function DashboardAnalytics() {
               <EventUsagePanel />
               <StripeRevenuePanel />
             </Box>
+          </DashboardSection>
+
+          <DashboardSection
+            id="roi"
+            title="ROI"
+            description="Margin from revenue vs API costs, including confirmed vendor expenses."
+          >
+            <RoiSummaryPanel />
+          </DashboardSection>
+
+          <DashboardSection
+            id="expenses"
+            title="Expenses"
+            description="Upload provider invoices, AI-extract fields, confirm month-to-month spend into ROI."
+          >
+            <ExpensesPanel />
           </DashboardSection>
 
           <DashboardSection id="feedback" title="Feedback" description="Post-event organizer and viewer ratings.">

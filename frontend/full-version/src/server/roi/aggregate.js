@@ -1,6 +1,6 @@
 import { supabase } from '@/utils/supabase/server';
 import { getRoiConfig } from '@/server/roi/config';
-import { fetchOpenAiDailyCosts } from '@/server/roi/openaiCosts';
+import { allocateVendorCostsToRows, fetchVendorDailyCosts } from '@/server/roi/vendorCosts';
 
 const CACHE = new Map();
 
@@ -345,13 +345,13 @@ function recomputeRowFinancials(row) {
   row.roi = roiSafe(row.gross_margin, row.api_cost_total);
 }
 
-async function applyOpenAiActualDailyCosts(rows, config) {
-  if (!rows.length) return;
+async function applyVendorActualDailyCosts(rows, config) {
+  if (!rows.length) return { vendorTotals: {}, vendorCostDays: 0, vendorCostEur: 0 };
   const days = rows.map((row) => row.day).sort();
   const startDay = days[0];
   const endDay = days[days.length - 1];
-  const dailyCosts = await fetchOpenAiDailyCosts({ startDay, endDay, config });
-  if (!dailyCosts.size) return;
+  const dailyCosts = await fetchVendorDailyCosts({ startDay, endDay, config });
+  if (!dailyCosts.size) return { vendorTotals: {}, vendorCostDays: 0, vendorCostEur: 0 };
 
   const byDay = new Map();
   for (const row of rows) {
@@ -360,24 +360,23 @@ async function applyOpenAiActualDailyCosts(rows, config) {
     byDay.set(row.day, list);
   }
 
-  for (const [day, openAiCostEur] of dailyCosts.entries()) {
+  const vendorTotals = {};
+  let vendorCostDays = 0;
+  let vendorCostEur = 0;
+
+  for (const [day, dayBucket] of dailyCosts.entries()) {
     const dayRows = byDay.get(day) || [];
-    if (!dayRows.length || openAiCostEur <= 0) continue;
-
-    const totalRuntime = dayRows.reduce((sum, row) => sum + Number(row.runtime_seconds || 0), 0);
-    for (const row of dayRows) {
-      const weight = totalRuntime > 0 ? Number(row.runtime_seconds || 0) / totalRuntime : 1 / dayRows.length;
-      const allocated = openAiCostEur * weight;
-      const nonOpenAiCost = Number(row.api_cost_total || 0) - Number(row.api_cost_tts || 0) - Number(row.api_cost_llm || 0);
-
-      row.api_cost_tts = 0;
-      row.api_cost_llm = allocated;
-      row.api_cost_total = nonOpenAiCost + allocated;
-      row.openai_actual_allocated = allocated;
-      row.cost_source = 'openai_actual_blended';
-      recomputeRowFinancials(row);
+    if (!dayRows.length || !(dayBucket.totalEur > 0)) continue;
+    allocateVendorCostsToRows(dayRows, dayBucket);
+    for (const row of dayRows) recomputeRowFinancials(row);
+    vendorCostDays += 1;
+    vendorCostEur += Number(dayBucket.totalEur || 0);
+    for (const [vendor, amount] of Object.entries(dayBucket.byVendor || {})) {
+      vendorTotals[vendor] = (vendorTotals[vendor] || 0) + Number(amount || 0);
     }
   }
+
+  return { vendorTotals, vendorCostDays, vendorCostEur };
 }
 
 export function parseFilters(url) {
@@ -520,9 +519,18 @@ export async function getRoiDataset(filters) {
     return true;
   });
 
-  await applyOpenAiActualDailyCosts(filteredRows, config);
+  const vendorMeta = await applyVendorActualDailyCosts(filteredRows, config);
 
-  const payload = { rows: filteredRows, generated_at: new Date().toISOString(), filters };
+  const payload = {
+    rows: filteredRows,
+    generated_at: new Date().toISOString(),
+    filters,
+    vendor_costs: {
+      total_eur: vendorMeta.vendorCostEur || 0,
+      days_with_actuals: vendorMeta.vendorCostDays || 0,
+      by_vendor: vendorMeta.vendorTotals || {}
+    }
+  };
   setCached(filters, payload);
   return payload;
 }
@@ -545,6 +553,7 @@ export function aggregateDaily(rows) {
       total_rows: 0,
       estimated_cost_rows: 0,
       openai_actual_cost_rows: 0,
+      vendor_actual_cost_rows: 0,
       usage_estimated_revenue_rows: 0,
       usage_overage_revenue_rows: 0
     };
@@ -559,6 +568,9 @@ export function aggregateDaily(rows) {
     existing.total_rows += 1;
     if (String(row.cost_source || '').includes('estimated')) existing.estimated_cost_rows = (existing.estimated_cost_rows || 0) + 1;
     if (String(row.cost_source || '').includes('openai_actual')) existing.openai_actual_cost_rows = (existing.openai_actual_cost_rows || 0) + 1;
+    if (String(row.cost_source || '').includes('vendor_actual')) {
+      existing.vendor_actual_cost_rows = (existing.vendor_actual_cost_rows || 0) + 1;
+    }
     if (row.revenue_source === 'usage_estimated') {
       existing.usage_estimated_revenue_rows = (existing.usage_estimated_revenue_rows || 0) + 1;
     }
@@ -576,6 +588,7 @@ export function aggregateDaily(rows) {
       fallback_share: row.total_rows > 0 ? row.fallback_rows / row.total_rows : 0,
       estimated_cost_share: row.total_rows > 0 ? (row.estimated_cost_rows || 0) / row.total_rows : 0,
       openai_actual_cost_share: row.total_rows > 0 ? (row.openai_actual_cost_rows || 0) / row.total_rows : 0,
+      vendor_actual_cost_share: row.total_rows > 0 ? (row.vendor_actual_cost_rows || 0) / row.total_rows : 0,
       usage_estimated_revenue_share: row.total_rows > 0 ? (row.usage_estimated_revenue_rows || 0) / row.total_rows : 0,
       usage_overage_revenue_share: row.total_rows > 0 ? (row.usage_overage_revenue_rows || 0) / row.total_rows : 0
     }))
