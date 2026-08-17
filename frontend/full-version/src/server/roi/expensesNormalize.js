@@ -60,7 +60,10 @@ export function normalizeExpenseInput(body = {}) {
     vendor: normalizeExpenseVendor(body.vendor || body.provider),
     category: normalizeExpenseCategory(body.category || body.cost_category),
     amount_eur: amountEur,
-    currency: String(body.currency || 'EUR').trim().toUpperCase() || 'EUR',
+    currency:
+      String(body.currency || 'EUR')
+        .trim()
+        .toUpperCase() || 'EUR',
     amount_original: amountOriginal == null || amountOriginal === '' ? null : Number(amountOriginal),
     day: day || null,
     period_start: day ? null : periodStart,

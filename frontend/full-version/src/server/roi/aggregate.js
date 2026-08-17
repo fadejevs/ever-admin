@@ -11,13 +11,7 @@ const COST_KEY_CANDIDATES = {
   llm: ['llm_cost', 'ai_cost', 'language_model_cost']
 };
 
-const RUNTIME_SECONDS_KEYS = [
-  'duration_seconds',
-  'runtime_seconds',
-  'elapsed_seconds',
-  'total_elapsed_seconds',
-  'session_seconds'
-];
+const RUNTIME_SECONDS_KEYS = ['duration_seconds', 'runtime_seconds', 'elapsed_seconds', 'total_elapsed_seconds', 'session_seconds'];
 
 function readNumber(obj, keys, fallback = 0) {
   for (const key of keys) {
@@ -67,14 +61,12 @@ function estimateCostsFromProviderUsage(event, config) {
   const chatOutputTokens = readNumber(event, ['llm_output_tokens', 'openai_output_tokens', 'chat_output_tokens'], 0);
   const asrSeconds = readNumber(event, ['asr_seconds', 'speech_to_text_seconds', 'stt_seconds'], 0);
 
-  const hasUsage =
-    deeplChars > 0 || ttsChars > 0 || chatInputTokens > 0 || chatOutputTokens > 0 || asrSeconds > 0;
+  const hasUsage = deeplChars > 0 || ttsChars > 0 || chatInputTokens > 0 || chatOutputTokens > 0 || asrSeconds > 0;
   if (!hasUsage) return null;
 
   const perM = 1_000_000;
   const deeplUsageRate =
-    Number(config?.deeplPricing?.usage_eur_per_million_chars || 0) ||
-    Number(config?.providerCosts?.deepl_eur_per_million_chars || 0);
+    Number(config?.deeplPricing?.usage_eur_per_million_chars || 0) || Number(config?.providerCosts?.deepl_eur_per_million_chars || 0);
   const translation = (deeplChars / perM) * deeplUsageRate;
   const tts = (ttsChars / perM) * Number(config?.providerCosts?.openai_tts_eur_per_million_chars || 0);
   const llmInput = (chatInputTokens / perM) * Number(config?.providerCosts?.openai_chat_input_eur_per_million_tokens || 0);
@@ -109,14 +101,7 @@ function pickEventDay(event) {
 }
 
 function pickWorkspaceId(event) {
-  return (
-    event?.workspace_id ||
-    event?.workspaceId ||
-    event?.organization_id ||
-    event?.organizationId ||
-    event?.org_id ||
-    'unassigned'
-  );
+  return event?.workspace_id || event?.workspaceId || event?.organization_id || event?.organizationId || event?.org_id || 'unassigned';
 }
 
 function pickCustomerId(event) {
@@ -133,12 +118,7 @@ function pickPlanTier(event) {
 }
 
 function pickTargetLanguageCount(event) {
-  const fromArrays = [
-    event?.targetLanguages,
-    event?.target_languages,
-    event?.target_langs,
-    event?.languages_target
-  ];
+  const fromArrays = [event?.targetLanguages, event?.target_languages, event?.target_langs, event?.languages_target];
   for (const candidate of fromArrays) {
     if (Array.isArray(candidate) && candidate.length > 0) return candidate.length;
   }
@@ -162,8 +142,7 @@ function extractActualRevenue(event) {
 }
 
 function resolveUsageRate(planTier, config) {
-  const isBundleLike =
-    /bundle|monthly|enterprise|business|pro/.test(planTier || '') && !/payg|pay-as-you-go/.test(planTier || '');
+  const isBundleLike = /bundle|monthly|enterprise|business|pro/.test(planTier || '') && !/payg|pay-as-you-go/.test(planTier || '');
   const rawRate = isBundleLike
     ? config?.usageRevenuePricing?.bundle_eur_per_hour_lang
     : config?.usageRevenuePricing?.payg_eur_per_hour_lang;
@@ -567,7 +546,8 @@ export function aggregateDaily(rows) {
     existing.gross_margin += row.gross_margin;
     existing.total_rows += 1;
     if (String(row.cost_source || '').includes('estimated')) existing.estimated_cost_rows = (existing.estimated_cost_rows || 0) + 1;
-    if (String(row.cost_source || '').includes('openai_actual')) existing.openai_actual_cost_rows = (existing.openai_actual_cost_rows || 0) + 1;
+    if (String(row.cost_source || '').includes('openai_actual'))
+      existing.openai_actual_cost_rows = (existing.openai_actual_cost_rows || 0) + 1;
     if (String(row.cost_source || '').includes('vendor_actual')) {
       existing.vendor_actual_cost_rows = (existing.vendor_actual_cost_rows || 0) + 1;
     }
@@ -619,12 +599,11 @@ export function aggregateCustomers(rows) {
     byCustomer.set(key, existing);
   }
 
-  const aggregated = Array.from(byCustomer.values())
-    .map((row) => ({
-      ...row,
-      roi: roiSafe(row.gross_margin, row.api_cost_total),
-      fallback_share: row.events_count > 0 ? row.fallback_rows / row.events_count : 0
-    }));
+  const aggregated = Array.from(byCustomer.values()).map((row) => ({
+    ...row,
+    roi: roiSafe(row.gross_margin, row.api_cost_total),
+    fallback_share: row.events_count > 0 ? row.fallback_rows / row.events_count : 0
+  }));
 
   const hasRevenue = aggregated.some((row) => row.revenue_prorated > 0);
   return aggregated.sort((a, b) => {

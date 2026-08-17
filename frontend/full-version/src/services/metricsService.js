@@ -68,9 +68,7 @@ export async function fetchHealthSummary(params = {}, options = {}) {
         if (isOfflineError(error)) {
           const body = error?.response?.data || {};
           return offlineHealthPayload(
-            body.message ||
-              body.error ||
-              'Main app unreachable — set NEXT_PUBLIC_METRICS_API and METRICS_API_KEY on admin Vercel.'
+            body.message || body.error || 'Main app unreachable — set NEXT_PUBLIC_METRICS_API and METRICS_API_KEY on admin Vercel.'
           );
         }
         throw error;

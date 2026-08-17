@@ -137,8 +137,7 @@ export async function extractInvoiceDraft(input) {
   const ext = extOf(filename);
   const buffer = Buffer.isBuffer(input.buffer) ? input.buffer : Buffer.from(input.buffer);
 
-  const isImage =
-    contentType.startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext);
+  const isImage = contentType.startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext);
 
   if (isImage) {
     const draft = await chatExtract({

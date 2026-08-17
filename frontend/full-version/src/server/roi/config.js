@@ -76,21 +76,12 @@ function parseCsvList(value, fallback = []) {
 
 export function getRoiConfig() {
   const planPrices = parseJsonObject(process.env.ROI_PLAN_MONTHLY_PRICES_JSON, DEFAULT_PLAN_PRICES);
-  const estimatedCostPerMinute = parseJsonObject(
-    process.env.ROI_ESTIMATED_COST_PER_MINUTE_JSON,
-    DEFAULT_ESTIMATED_COST_PER_MINUTE
-  );
-  const usageRevenuePricing = parseJsonObject(
-    process.env.ROI_USAGE_REVENUE_PRICING_JSON,
-    DEFAULT_USAGE_REVENUE_PRICING
-  );
+  const estimatedCostPerMinute = parseJsonObject(process.env.ROI_ESTIMATED_COST_PER_MINUTE_JSON, DEFAULT_ESTIMATED_COST_PER_MINUTE);
+  const usageRevenuePricing = parseJsonObject(process.env.ROI_USAGE_REVENUE_PRICING_JSON, DEFAULT_USAGE_REVENUE_PRICING);
   const providerCosts = parseJsonObject(process.env.ROI_PROVIDER_COSTS_JSON, DEFAULT_PROVIDER_COSTS);
   const deeplPricing = parseJsonObject(process.env.ROI_DEEPL_PRICING_JSON, DEFAULT_DEEPL_PRICING);
   const freeAllowance = parseJsonObject(process.env.ROI_FREE_ALLOWANCE_JSON, DEFAULT_FREE_ALLOWANCE);
-  const excludedAdminEmails = parseCsvList(
-    process.env.ROI_EXCLUDED_ADMIN_EMAILS,
-    ['ralfsfadejevs@gmail.com', 'alans@linearis.io']
-  );
+  const excludedAdminEmails = parseCsvList(process.env.ROI_EXCLUDED_ADMIN_EMAILS, ['ralfsfadejevs@gmail.com', 'alans@linearis.io']);
   const excludedAdminUserIds = parseJsonArray(process.env.ROI_EXCLUDED_ADMIN_USER_IDS_JSON, []);
   const openAiProjectIds = parseCsvList(process.env.ROI_OPENAI_PROJECT_IDS, []);
   const openAiLineItemAllowlist = parseCsvList(process.env.ROI_OPENAI_LINE_ITEM_ALLOWLIST, []);

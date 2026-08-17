@@ -20,13 +20,7 @@ import {
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
 import DashboardPanel from '@/components/DashboardPanel';
-import {
-  createRoiExpense,
-  deleteRoiExpense,
-  extractRoiInvoice,
-  fetchExpenses,
-  updateRoiExpense
-} from '@/services/metricsService';
+import { createRoiExpense, deleteRoiExpense, extractRoiInvoice, fetchExpenses, updateRoiExpense } from '@/services/metricsService';
 
 const CATEGORIES = [
   { value: 'asr', label: 'ASR' },
@@ -291,14 +285,7 @@ export default function ExpensesPanel() {
       chips={
         <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap alignItems="center">
           <Chip size="small" color="primary" variant="outlined" label={`${month} confirmed ${formatEur(monthTotal)}`} />
-          <TextField
-            select
-            size="small"
-            label="Month"
-            value={month}
-            onChange={(e) => setMonth(e.target.value)}
-            sx={{ minWidth: 130 }}
-          >
+          <TextField select size="small" label="Month" value={month} onChange={(e) => setMonth(e.target.value)} sx={{ minWidth: 130 }}>
             {months.map((m) => (
               <MenuItem key={m} value={m}>
                 {m}
@@ -402,7 +389,13 @@ export default function ExpensesPanel() {
           <Button size="small" variant="outlined" disabled={busy} onClick={() => save('draft')} sx={{ textTransform: 'none' }}>
             {editingId ? 'Update draft' : 'Save draft'}
           </Button>
-          <Button size="small" variant="contained" disabled={busy} onClick={() => save('confirmed')} sx={{ textTransform: 'none', fontWeight: 700 }}>
+          <Button
+            size="small"
+            variant="contained"
+            disabled={busy}
+            onClick={() => save('confirmed')}
+            sx={{ textTransform: 'none', fontWeight: 700 }}
+          >
             {editingId ? 'Update & confirm' : 'Confirm into ROI'}
           </Button>
           {(editingId || draft.vendor || draft.amount_eur !== '') && (
@@ -448,9 +441,7 @@ export default function ExpensesPanel() {
                   <TableCell>{row.category}</TableCell>
                   <TableCell align="right">{formatEur(row.amount_eur)}</TableCell>
                   <TableCell>
-                    <Typography variant="caption">
-                      {row.day || `${row.period_start || '—'} → ${row.period_end || '—'}`}
-                    </Typography>
+                    <Typography variant="caption">{row.day || `${row.period_start || '—'} → ${row.period_end || '—'}`}</Typography>
                   </TableCell>
                   <TableCell>
                     <Chip
@@ -470,7 +461,13 @@ export default function ExpensesPanel() {
                           Confirm
                         </Button>
                       ) : null}
-                      <Button size="small" color="error" onClick={() => removeRow(row)} disabled={busy} sx={{ textTransform: 'none', minWidth: 0 }}>
+                      <Button
+                        size="small"
+                        color="error"
+                        onClick={() => removeRow(row)}
+                        disabled={busy}
+                        sx={{ textTransform: 'none', minWidth: 0 }}
+                      >
                         Delete
                       </Button>
                     </Stack>

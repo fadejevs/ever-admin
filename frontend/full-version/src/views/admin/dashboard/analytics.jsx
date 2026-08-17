@@ -46,12 +46,7 @@ export default function DashboardAnalytics() {
               px: { xs: 0.5, sm: 0 }
             }}
           >
-            <Stack
-              direction={{ xs: 'column', sm: 'row' }}
-              spacing={1.25}
-              alignItems={{ sm: 'center' }}
-              justifyContent="space-between"
-            >
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} alignItems={{ sm: 'center' }} justifyContent="space-between">
               <Box sx={{ minWidth: 0 }}>
                 <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: '-0.02em', color: 'text.primary' }}>
                   Analytics
@@ -87,12 +82,7 @@ export default function DashboardAnalytics() {
             </Stack>
           </Box>
 
-          <DashboardSection
-            id="usage-revenue"
-            title="Usage & revenue"
-            description="Workspace minutes and Stripe."
-            showDivider={false}
-          >
+          <DashboardSection id="usage-revenue" title="Usage & revenue" description="Workspace minutes and Stripe." showDivider={false}>
             <Box
               sx={{
                 display: 'grid',
@@ -106,11 +96,7 @@ export default function DashboardAnalytics() {
             </Box>
           </DashboardSection>
 
-          <DashboardSection
-            id="roi"
-            title="ROI"
-            description="Margin from revenue vs API costs, including confirmed vendor expenses."
-          >
+          <DashboardSection id="roi" title="ROI" description="Margin from revenue vs API costs, including confirmed vendor expenses.">
             <RoiSummaryPanel />
           </DashboardSection>
 

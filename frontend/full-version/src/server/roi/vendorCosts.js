@@ -12,11 +12,7 @@
 
 import { fetchOpenAiDailyCosts } from '@/server/roi/openaiCosts';
 import { fetchConfirmedExpenseLedger } from '@/server/roi/expensesStore';
-import {
-  allocateVendorCostsToRows,
-  buildDailyVendorCostMap,
-  expandVendorExpenseEntry
-} from '@/server/roi/vendorCostLedger';
+import { allocateVendorCostsToRows, buildDailyVendorCostMap, expandVendorExpenseEntry } from '@/server/roi/vendorCostLedger';
 
 export { allocateVendorCostsToRows, buildDailyVendorCostMap, expandVendorExpenseEntry };
 

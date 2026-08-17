@@ -63,8 +63,7 @@ export async function listVendorExpenses({ month, status, startDay, endDay } = {
   const rangeStart = bounds?.start || startDay;
   const rangeEnd = bounds?.end || endDay;
 
-  const expenses =
-    rangeStart && rangeEnd ? allRows.filter((row) => expenseOverlapsRange(row, rangeStart, rangeEnd)) : allRows;
+  const expenses = rangeStart && rangeEnd ? allRows.filter((row) => expenseOverlapsRange(row, rangeStart, rangeEnd)) : allRows;
 
   const byMonth = {};
   for (const row of allRows) {
@@ -80,9 +79,7 @@ export async function listVendorExpenses({ month, status, startDay, endDay } = {
   }
 
   const monthSummaries = Object.values(byMonth).sort((a, b) => String(b.month).localeCompare(String(a.month)));
-  const confirmedTotal = expenses
-    .filter((r) => r.status === 'confirmed')
-    .reduce((sum, r) => sum + Number(r.amount_eur || 0), 0);
+  const confirmedTotal = expenses.filter((r) => r.status === 'confirmed').reduce((sum, r) => sum + Number(r.amount_eur || 0), 0);
 
   return {
     expenses,

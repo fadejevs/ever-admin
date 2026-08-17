@@ -100,7 +100,11 @@ export default function RoiSummaryPanel({ refreshSec = 120 }) {
             color={hasVendorActuals ? 'success' : 'default'}
             variant={hasVendorActuals ? 'filled' : 'outlined'}
           />
-          <Chip size="small" variant="outlined" label={`Actual share ${formatPct(period?.vendor_actual_cost_share || period?.openai_actual_cost_share)}`} />
+          <Chip
+            size="small"
+            variant="outlined"
+            label={`Actual share ${formatPct(period?.vendor_actual_cost_share || period?.openai_actual_cost_share)}`}
+          />
         </Stack>
       }
     >
@@ -132,8 +136,8 @@ export default function RoiSummaryPanel({ refreshSec = 120 }) {
             </Typography>
             {vendorEntries.length === 0 ? (
               <Typography variant="body2" color="text.secondary">
-                No vendor actuals in range. Confirm invoices in Expenses, or set{' '}
-                <code>ROI_VENDOR_EXPENSES_JSON</code> / enable <code>ROI_OPENAI_COSTS_ENABLED</code>.
+                No vendor actuals in range. Confirm invoices in Expenses, or set <code>ROI_VENDOR_EXPENSES_JSON</code> / enable{' '}
+                <code>ROI_OPENAI_COSTS_ENABLED</code>.
               </Typography>
             ) : (
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
