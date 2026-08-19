@@ -45,22 +45,55 @@ function getMetricsBaseUrl() {
   ).replace(/\/$/, '');
 }
 
-async function fetchActiveRoomMap() {
+async function fetchActiveRoomSnapshot() {
   const base = getMetricsBaseUrl();
-  if (!base) return new Map();
+  if (!base) return { ok: false, map: new Map() };
 
   try {
     const res = await fetch(`${base}/api/platform/live-rooms`, { cache: 'no-store' });
-    if (!res.ok) return new Map();
+    if (!res.ok) return { ok: false, map: new Map() };
     const data = await res.json();
+    if (data?.ok === false) return { ok: false, map: new Map() };
     const map = new Map();
     for (const room of data?.rooms || []) {
-      if (room?.room_id) map.set(room.room_id, room);
+      if (room?.room_id) map.set(String(room.room_id), room);
     }
-    return map;
+    return { ok: true, map };
   } catch {
-    return new Map();
+    return { ok: false, map: new Map() };
   }
+}
+
+/** Wait this long after a Live session starts/resumes before treating a dead room as abandoned. */
+const STALE_LIVE_IDLE_MS = 60 * 60 * 1000;
+
+function liveSessionStartedAtMs(event) {
+  const ts = Date.parse(event?.updated_at || event?.started_at || 0);
+  return Number.isFinite(ts) ? ts : null;
+}
+
+function roomHasAdmin(room) {
+  return Number(room?.admin_connections || 0) > 0;
+}
+
+function isAbandonedLiveEvent(event, roomMap, nowMs) {
+  const startedAtMs = liveSessionStartedAtMs(event);
+  if (startedAtMs == null || nowMs - startedAtMs < STALE_LIVE_IDLE_MS) return false;
+  const room = roomMap.get(String(event.id));
+  return !roomHasAdmin(room);
+}
+
+async function pauseAbandonedLiveEvents(events, roomMap, nowMs) {
+  const ids = events.filter((event) => isAbandonedLiveEvent(event, roomMap, nowMs)).map((event) => event.id);
+  if (!ids.length) return [];
+
+  // Status-only: do not add wall-clock time. These rooms have had no admin for an hour+.
+  const { error } = await supabase.from('events').update({ status: 'Paused' }).in('id', ids).eq('status', LIVE_STATUS);
+  if (error) {
+    console.error('[liveEvents] Failed to pause abandoned Live events:', error.message);
+    return [];
+  }
+  return ids;
 }
 
 async function fetchWorkspaceMap(workspaceIds) {
@@ -230,22 +263,32 @@ async function fetchRecentRanEvents(limit = RECENT_RAN_LIMIT) {
 
 export async function fetchLiveEvents() {
   const nowMs = Date.now();
-  const [liveResult, activeRoomMap, recentEvents, upcomingEvents] = await Promise.all([
+  const [liveResult, roomSnapshot, upcomingEvents] = await Promise.all([
     supabase.from('events').select('*').eq('status', LIVE_STATUS),
-    fetchActiveRoomMap(),
-    fetchRecentRanEvents(RECENT_RAN_LIMIT),
+    fetchActiveRoomSnapshot(),
     fetchUpcomingScheduledEvents(8, new Date(nowMs))
   ]);
   const { data, error } = liveResult;
 
   if (error) throw new Error(`Failed to read live events: ${error.message}`);
 
-  const dbLiveRows = (data || []).sort((a, b) => {
+  let dbLiveRows = data || [];
+  if (roomSnapshot.ok) {
+    const pausedIds = new Set(await pauseAbandonedLiveEvents(dbLiveRows, roomSnapshot.map, nowMs));
+    if (pausedIds.size) {
+      dbLiveRows = dbLiveRows.filter((row) => !pausedIds.has(row.id));
+    }
+  }
+
+  const recentEvents = await fetchRecentRanEvents(RECENT_RAN_LIMIT);
+
+  dbLiveRows = dbLiveRows.sort((a, b) => {
     const aTs = Date.parse(pickStartedAt(a) || 0);
     const bTs = Date.parse(pickStartedAt(b) || 0);
     return bTs - aTs;
   });
-  const rows = dbLiveRows.filter((row) => activeRoomMap.has(row.id));
+  const activeRoomMap = roomSnapshot.map;
+  const rows = dbLiveRows.filter((row) => activeRoomMap.has(String(row.id)));
   const staleLiveCount = dbLiveRows.length - rows.length;
   const workspaceMap = await fetchWorkspaceMap(rows.map((r) => r.workspace_id || r.workspaceId));
   const ownerIds = [...workspaceMap.values()].map((w) => w.ownerUserId).filter(Boolean);
@@ -256,7 +299,7 @@ export async function fetchLiveEvents() {
     const ownerEmail = workspace?.ownerUserId ? ownerEmails.get(workspace.ownerUserId) : null;
     const startedAt = pickStartedAt(row);
     const langs = pickLanguages(row);
-    const room = activeRoomMap.get(row.id);
+    const room = activeRoomMap.get(String(row.id));
 
     return {
       id: row.id,
