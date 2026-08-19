@@ -190,7 +190,13 @@ async function fetchUpcomingScheduledEvents(limit = 8, now = new Date()) {
     .map(({ sortKey: _sortKey, ...row }) => row);
 }
 
-async function fetchRecentRanEvents(limit = 3) {
+function pickPeakListeners(event) {
+  return Math.max(0, Number(event?.peak_viewer_count ?? event?.peakViewerCount ?? 0));
+}
+
+const RECENT_RAN_LIMIT = 80;
+
+async function fetchRecentRanEvents(limit = RECENT_RAN_LIMIT) {
   const { data, error } = await supabase
     .from('events')
     .select('*')
@@ -214,6 +220,7 @@ async function fetchRecentRanEvents(limit = 3) {
       title: pickEventTitle(row),
       status: row.status,
       ranAt: pickActivityAt(row),
+      peakListeners: pickPeakListeners(row),
       workspaceId: row.workspace_id || row.workspaceId || null,
       workspaceName: workspace?.name || null,
       customerEmail: ownerEmail || null
@@ -226,7 +233,7 @@ export async function fetchLiveEvents() {
   const [liveResult, activeRoomMap, recentEvents, upcomingEvents] = await Promise.all([
     supabase.from('events').select('*').eq('status', LIVE_STATUS),
     fetchActiveRoomMap(),
-    fetchRecentRanEvents(3),
+    fetchRecentRanEvents(RECENT_RAN_LIMIT),
     fetchUpcomingScheduledEvents(8, new Date(nowMs))
   ]);
   const { data, error } = liveResult;

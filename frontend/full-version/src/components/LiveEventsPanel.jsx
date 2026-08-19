@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Box,
+  Button,
   Chip,
   CircularProgress,
   Link,
@@ -118,6 +119,12 @@ function SideList({ title, empty, children }) {
   );
 }
 
+function formatPeakListeners(count) {
+  const peak = Math.max(0, Number(count || 0));
+  if (!peak) return '—';
+  return `${peak} peak`;
+}
+
 function CompactRow({ title, meta, right }) {
   return (
     <Stack
@@ -144,10 +151,13 @@ function CompactRow({ title, meta, right }) {
   );
 }
 
+const RECENT_PREVIEW_COUNT = 3;
+
 export default function LiveEventsPanel({ refreshSec = 10 }) {
   const [payload, setPayload] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [recentExpanded, setRecentExpanded] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -170,6 +180,8 @@ export default function LiveEventsPanel({ refreshSec = 10 }) {
   const events = payload?.events || [];
   const recentEvents = payload?.recentEvents || [];
   const upcomingEvents = payload?.upcomingEvents || [];
+  const visibleRecentEvents = recentExpanded ? recentEvents : recentEvents.slice(0, RECENT_PREVIEW_COUNT);
+  const hiddenRecentCount = Math.max(0, recentEvents.length - RECENT_PREVIEW_COUNT);
   const totalListeners = payload?.totalListeners ?? events.reduce((sum, e) => sum + (e.viewerCount ?? 0), 0);
   const updatedLabel = useMemo(() => {
     if (!payload?.updatedAt) return '—';
@@ -311,14 +323,24 @@ export default function LiveEventsPanel({ refreshSec = 10 }) {
           <SideList title={`Recent${recentEvents.length ? ` · ${recentEvents.length}` : ''}`} empty="No recent runs.">
             {recentEvents.length > 0 ? (
               <Stack>
-                {recentEvents.map((event) => (
+                {visibleRecentEvents.map((event) => (
                   <CompactRow
                     key={event.id}
                     title={event.title}
-                    meta={`${event.workspaceName || event.customerEmail || event.workspaceId || '—'} · ${event.status}`}
-                    right={formatWhen(event.ranAt)}
+                    meta={`${event.workspaceName || event.customerEmail || event.workspaceId || '—'} · ${event.status} · ${formatWhen(event.ranAt)}`}
+                    right={formatPeakListeners(event.peakListeners)}
                   />
                 ))}
+                {hiddenRecentCount > 0 ? (
+                  <Button
+                    size="small"
+                    color="inherit"
+                    onClick={() => setRecentExpanded((open) => !open)}
+                    sx={{ alignSelf: 'flex-start', mt: 0.5, px: 0, minWidth: 0, textTransform: 'none', fontWeight: 600 }}
+                  >
+                    {recentExpanded ? 'Show less' : `Show ${hiddenRecentCount} more`}
+                  </Button>
+                ) : null}
               </Stack>
             ) : null}
           </SideList>
