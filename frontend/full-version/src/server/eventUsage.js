@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { supabase } from '@/utils/supabase/server';
+import { withoutAutomationEvents } from '@/server/automationEvents';
 import { resolveEventUnits } from '@/utils/billingUnits';
 
 function isoDateDaysAgo(daysAgo) {
@@ -172,11 +173,12 @@ export async function fetchEventUsage({ startDate, endDate, startIso, endIso, ro
     query = query.eq('status', status);
   }
 
-  const [{ data, error }, activeRoomMap] = await Promise.all([query.limit(Math.min(limit, 500)), fetchActiveRoomMap()]);
+  const fetchLimit = Math.min(Math.max(limit * 8, limit), 500);
+  const [{ data, error }, activeRoomMap] = await Promise.all([query.limit(fetchLimit), fetchActiveRoomMap()]);
 
   if (error) throw new Error(`Failed to read events: ${error.message}`);
 
-  const rows = data || [];
+  const rows = withoutAutomationEvents(data || []).slice(0, limit);
   const workspaceMap = await fetchWorkspaceMap(rows.map((r) => r.workspace_id));
   const ownerEmails = await fetchOwnerEmails([...workspaceMap.values()].map((w) => w.ownerUserId).filter(Boolean));
 

@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { supabase } from '@/utils/supabase/server';
+import { withoutAutomationEvents } from '@/server/automationEvents';
 
 const LIVE_STATUS = 'Live';
 
@@ -210,7 +211,7 @@ async function fetchUpcomingScheduledEvents(limit = 8, now = new Date()) {
   const ownerEmails = await fetchOwnerEmails(ownerIds);
   const today = startOfLocalDay(now).getTime();
 
-  return rows
+  return withoutAutomationEvents(rows)
     .map((row) => enrichScheduledRow(row, workspaceMap, ownerEmails))
     .filter((row) => {
       if (!row.scheduledDate) return false;
@@ -228,6 +229,7 @@ function pickPeakListeners(event) {
 }
 
 const RECENT_RAN_LIMIT = 80;
+const RECENT_RAN_FETCH = 500;
 
 async function fetchRecentRanEvents(limit = RECENT_RAN_LIMIT) {
   const { data, error } = await supabase
@@ -235,11 +237,11 @@ async function fetchRecentRanEvents(limit = RECENT_RAN_LIMIT) {
     .select('*')
     .in('status', ['Completed', 'Paused'])
     .order('updated_at', { ascending: false })
-    .limit(limit);
+    .limit(RECENT_RAN_FETCH);
 
   if (error) throw new Error(`Failed to read recent events: ${error.message}`);
 
-  const rows = data || [];
+  const rows = withoutAutomationEvents(data || []).slice(0, limit);
   const workspaceMap = await fetchWorkspaceMap(rows.map((r) => r.workspace_id || r.workspaceId));
   const ownerIds = [...workspaceMap.values()].map((w) => w.ownerUserId).filter(Boolean);
   const ownerEmails = await fetchOwnerEmails(ownerIds);
@@ -279,6 +281,7 @@ export async function fetchLiveEvents() {
       dbLiveRows = dbLiveRows.filter((row) => !pausedIds.has(row.id));
     }
   }
+  dbLiveRows = withoutAutomationEvents(dbLiveRows);
 
   const recentEvents = await fetchRecentRanEvents(RECENT_RAN_LIMIT);
 
