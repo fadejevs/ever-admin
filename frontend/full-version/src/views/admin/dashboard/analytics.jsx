@@ -9,10 +9,11 @@ import ExpensesPanel from '@/components/ExpensesPanel';
 import DashboardSection from '@/components/DashboardSection';
 
 const JUMP_LINKS = [
+  { id: 'feedback', label: 'Feedback' },
+  { id: 'stripe', label: 'Stripe' },
   { id: 'usage-revenue', label: 'Usage' },
   { id: 'roi', label: 'ROI' },
-  { id: 'expenses', label: 'Expenses' },
-  { id: 'feedback', label: 'Feedback' }
+  { id: 'expenses', label: 'Expenses' }
 ];
 
 function scrollToSection(id) {
@@ -52,7 +53,7 @@ export default function DashboardAnalytics() {
                   Analytics
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
-                  Usage, revenue, ROI, vendor expenses, and customer feedback.
+                  Customer feedback, Stripe, usage, ROI, and vendor expenses.
                 </Typography>
               </Box>
               <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
@@ -82,18 +83,16 @@ export default function DashboardAnalytics() {
             </Stack>
           </Box>
 
-          <DashboardSection id="usage-revenue" title="Usage & revenue" description="Workspace minutes and Stripe." showDivider={false}>
-            <Box
-              sx={{
-                display: 'grid',
-                gap: 2,
-                gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' },
-                alignItems: 'start'
-              }}
-            >
-              <EventUsagePanel />
-              <StripeRevenuePanel />
-            </Box>
+          <DashboardSection id="feedback" title="Feedback" description="Post-event organizer and viewer ratings." showDivider={false}>
+            <UserFeedbackPanel />
+          </DashboardSection>
+
+          <DashboardSection id="stripe" title="Stripe" description="Charges, refunds, and net revenue.">
+            <StripeRevenuePanel />
+          </DashboardSection>
+
+          <DashboardSection id="usage-revenue" title="Usage" description="Workspace minutes.">
+            <EventUsagePanel />
           </DashboardSection>
 
           <DashboardSection id="roi" title="ROI" description="Margin from revenue vs API costs, including confirmed vendor expenses.">
@@ -106,10 +105,6 @@ export default function DashboardAnalytics() {
             description="Upload provider invoices, AI-extract fields, confirm month-to-month spend into ROI."
           >
             <ExpensesPanel />
-          </DashboardSection>
-
-          <DashboardSection id="feedback" title="Feedback" description="Post-event organizer and viewer ratings.">
-            <UserFeedbackPanel />
           </DashboardSection>
         </Stack>
       </Box>
