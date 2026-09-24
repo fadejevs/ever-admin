@@ -2,6 +2,7 @@ import 'server-only';
 
 import { supabase } from '@/utils/supabase/server';
 import { withoutAutomationEvents } from '@/server/automationEvents';
+import { syncLiveRoomPeaks } from '@/server/peakViewers';
 
 const LIVE_STATUS = 'Live';
 
@@ -273,6 +274,10 @@ export async function fetchLiveEvents() {
   const { data, error } = liveResult;
 
   if (error) throw new Error(`Failed to read live events: ${error.message}`);
+
+  if (roomSnapshot.ok) {
+    await syncLiveRoomPeaks(roomSnapshot.map);
+  }
 
   let dbLiveRows = data || [];
   if (roomSnapshot.ok) {
